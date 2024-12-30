@@ -5,12 +5,9 @@ Version.java
 # ------------------------------------------------------------------------------
 .gradle
 build/
-deploy/
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**
 !**/src/test/**
-/_config/docker/images/smpp-simulator/rootfs/app/
-/logs/**
 
 ### IntelliJ IDEA ###
 .idea
@@ -36,6 +33,3 @@ out/
 *.DS_Store
 .AppleDouble
 .LSOverride
-
-
-
