@@ -1,0 +1,44 @@
+server:
+  port: "${PORT:8080}"
+  forward-headers-strategy: framework
+  error:
+    include-message: always
+    include-exception: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  endpoint:
+    health:
+      show-details: always
+    env:
+      enabled: false
+    prometheus:
+      enabled: true
+
+# Configuration properties
+spring:
+  aot:
+    enabled: false
+
+  application:
+    name: "file-share"
+
+  config:
+    location: "file://./src/main/resources/application.yml"
+
+  devtools:
+    add-properties: "${NA_DEVTOOLS:false}"
+
+  jmx:
+    enabled: "${JMX_ENABLED:true}"
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+    doc-expansion: none
+  show-actuator: "${NA_ENABLE_ACTUATOR:true}"

@@ -1,0 +1,41 @@
+Version.java
+
+# ------------------------------------------------------------------------------
+# Project ignore files
+# ------------------------------------------------------------------------------
+.gradle
+build/
+deploy/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**
+!**/src/test/**
+/_config/docker/images/smpp-simulator/rootfs/app/
+/logs/**
+
+### IntelliJ IDEA ###
+.idea
+*.iws
+*.iml
+*.ipr
+out/
+
+#-------------------------------------------------------------------------------
+# Linux ignore files
+#-------------------------------------------------------------------------------
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+#-------------------------------------------------------------------------------
+# MacOS ignore files
+#-------------------------------------------------------------------------------
+#
+# Default MacOS ignore list
+*.DS_Store
+.AppleDouble
+.LSOverride
+
+
+
