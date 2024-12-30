@@ -36,6 +36,15 @@ spring:
   jmx:
     enabled: "${JMX_ENABLED:true}"
 
+  datasource:
+    url: jdbc:sqlite:file-share.db  # Database file name (relative to project directory)
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update             # Automatically create/update tables
+
 springdoc:
   swagger-ui:
     tags-sorter: alpha
