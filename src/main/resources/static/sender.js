@@ -4,7 +4,7 @@ const ICE_CANDIDATE = "iceCandidate";
 
 const ws = new WebSocket("ws://localhost:8080/ws");
 
-const rtcPeerConnection = new RTCPeerConnection();
+let rtcPeerConnection = new RTCPeerConnection();
 
 rtcPeerConnection.onicecandidate = event => {
     if (event.candidate) {
@@ -50,6 +50,9 @@ function handleIceCandidate(message) {
 }
 
 function handleOffer(offer) {
+
+    setUpRtcConnection();
+
     rtcPeerConnection.ondatachannel = e => {
         rtcPeerConnection.dc = e.channel;
         rtcPeerConnection.dc.onmessage = e => console.log("msg: " + e.data);
@@ -99,4 +102,26 @@ function setUpChannel() {
     sendDataChannel.onopen = e => console.log("channel open");
 
     sendDataChannel.onclose = () => console.log("Data channel closed");
+}
+
+function setUpRtcConnection() {
+    rtcPeerConnection = new RTCPeerConnection();
+
+    rtcPeerConnection.onicecandidate = event => {
+        if (event.candidate) {
+            ws.send(JSON.stringify({ type: ICE_CANDIDATE, candidate: event.candidate }));
+        } else {
+            console.log("All ICE candidates have been sent.");
+        }
+    };
+}
+
+function hangUp() {
+    if (sendDataChannel) {
+        sendDataChannel.close();
+    }
+    if (rtcPeerConnection.dc) {
+        rtcPeerConnection.dc.close();
+    }
+    rtcPeerConnection.close();
 }
