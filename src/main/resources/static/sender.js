@@ -14,13 +14,7 @@ rtcPeerConnection.onicecandidate = event => {
     }
 };
 
-const sendDataChannel = rtcPeerConnection.createDataChannel("sendDataChannel");
-
-sendDataChannel.onmessage = e => console.log(e.data);
-
-sendDataChannel.onopen = e => console.log("channel open");
-
-sendDataChannel.onclose = () => console.log("Data channel closed");
+let sendDataChannel = null;
 
 ws.onmessage = e => {
     try {
@@ -82,6 +76,9 @@ function handleAnswer(answer) {
 }
 
 function initiateOffer() {
+
+    setUpChannel();
+
     rtcPeerConnection.createOffer()
         .then(offer => {
             return rtcPeerConnection.setLocalDescription(offer);
@@ -92,4 +89,14 @@ function initiateOffer() {
         .catch(error => {
             console.error('Error creating or sending offer:', error);
         });
+}
+
+function setUpChannel() {
+    sendDataChannel = rtcPeerConnection.createDataChannel("sendDataChannel");
+
+    sendDataChannel.onmessage = e => console.log(e.data);
+
+    sendDataChannel.onopen = e => console.log("channel open");
+
+    sendDataChannel.onclose = () => console.log("Data channel closed");
 }
