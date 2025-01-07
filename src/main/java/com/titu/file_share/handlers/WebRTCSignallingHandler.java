@@ -1,6 +1,5 @@
 package com.titu.file_share.handlers;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
 import org.springframework.web.socket.CloseStatus;
@@ -9,7 +8,6 @@ import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
 import java.io.IOException;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Component
@@ -52,6 +50,4 @@ public class WebRTCSignallingHandler extends TextWebSocketHandler {
         sessions.remove(session.getId());
         log.info("Transport error: {}", exception.toString());
     }
-
-
 }
