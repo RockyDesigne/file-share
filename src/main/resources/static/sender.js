@@ -1,10 +1,18 @@
 const OFFER = "offer";
 const ANSWER = "answer";
 const ICE_CANDIDATE = "iceCandidate";
+const STUN_SERVERS = {
+    iceServers: [
+        {
+            urls: ['stun:stun.l.google.com:19302','stun:stun.l.google.com:5349'],
+        },
+    ],
+    iceCandidatePoolSize: 10,
+};
 
 const ws = new WebSocket("ws://localhost:8080/ws");
 
-let rtcPeerConnection = new RTCPeerConnection();
+let rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
 rtcPeerConnection.onicecandidate = event => {
     if (event.candidate) {
@@ -105,7 +113,7 @@ function setUpChannel() {
 }
 
 function setUpRtcConnection() {
-    rtcPeerConnection = new RTCPeerConnection();
+    rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
     rtcPeerConnection.onicecandidate = event => {
         if (event.candidate) {
