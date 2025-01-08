@@ -92,6 +92,8 @@ function handleAnswer(answer) {
 
 function initiateOffer() {
 
+    setUpRtcConnection();
+
     setUpChannel();
 
     rtcPeerConnection.createOffer()
