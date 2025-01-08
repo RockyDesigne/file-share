@@ -1,6 +1,16 @@
 const OFFER = "offer";
 const ANSWER = "answer";
+const SEND_FILE_REQUEST = "sendFileRequest";
+const SEND_FILE_RESPONSE = "sendFileResponse";
+const FILE_RECEIVED = "fileReceived";
 const ICE_CANDIDATE = "iceCandidate";
+const DIR_HANDLE = await window.showDirectoryPicker();
+let RECEIVED_CHUNKS = [];
+let TOTAL_RECEIVED = 0;
+let FILE_SIZE = 11;
+const chunkSize = 16384;  // 16KB per chunk (adjust as needed)
+let offset = 0;
+let reader = new FileReader();
 const STUN_SERVERS = {
     iceServers: [
         {
@@ -10,7 +20,7 @@ const STUN_SERVERS = {
     iceCandidatePoolSize: 10,
 };
 
-const ws = new WebSocket("ws://localhost:8080/ws");
+const ws = new WebSocket("ws://localhost:8081/ws");
 
 let rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
@@ -61,12 +71,6 @@ function handleOffer(offer) {
 
     setUpRtcConnection();
 
-    rtcPeerConnection.ondatachannel = e => {
-        rtcPeerConnection.dc = e.channel;
-        rtcPeerConnection.dc.onmessage = e => console.log("msg: " + e.data);
-        rtcPeerConnection.dc.onopen = e => console.log("conn opened");
-        rtcPeerConnection.dc.onclose = () => console.log("Data channel closed");
-    }
         rtcPeerConnection.setRemoteDescription(offer)
             .then(() => {
                 return rtcPeerConnection.createAnswer();
@@ -102,19 +106,132 @@ function initiateOffer() {
         });
 }
 
+
+
 function setUpChannel() {
     sendDataChannel = rtcPeerConnection.createDataChannel("sendDataChannel");
 
-    sendDataChannel.onmessage = e => console.log(e.data);
+    sendDataChannel.onmessage = handleWebRtcMessage;
 
     sendDataChannel.onopen = e => console.log("channel open");
 
     sendDataChannel.onclose = () => console.log("Data channel closed");
 }
 
+function readNextChunk(file) {
+    const slice = file.slice(offset, offset + chunkSize);  // Get the next slice of the file
+    reader.readAsArrayBuffer(slice);
+}
+
+async function sendFile(file) {
+
+    offset = 0;
+
+    readNextChunk(file);
+
+    reader.onload = (event) => {
+        // When the file slice is read, send it over the data channel
+        const chunk = event.target.result;
+        sendMessageViaChannel(chunk, rtcPeerConnection.dc);
+        //rtcPeerConnection.dc.send(JSON.stringify(packet));
+        offset += chunk.byteLength;  // Move the offset for the next chunk
+
+        // Send the next chunk if there is more data
+        if (offset < file.size) {
+            readNextChunk(file);
+        } else {
+            console.log("File transfer complete.");
+        }
+    };
+
+    reader.onerror = (error) => {
+        console.error("Error reading file:", error);
+    };
+}
+
+async function getFileHandle(fileName) {
+    try {
+        const fileHandle = await DIR_HANDLE.getFileHandle(fileName);
+        console.log("got file handle");
+        return fileHandle;
+    } catch (error) {
+        console.error("Error in getFileHandle: " + error);
+    }
+}
+
+async function getFile(fileHandle) {
+    try {
+        const file = await fileHandle.getFile();
+        console.log("got file");
+        return file;
+    } catch (error) {
+        console.error("Error in getFile: " + error);
+    }
+}
+
+function handleSendFileResponse(data) {
+
+    if (data instanceof ArrayBuffer) {
+
+        RECEIVED_CHUNKS.push(data);
+        TOTAL_RECEIVED += data.byteLength;
+
+        if (TOTAL_RECEIVED === FILE_SIZE) {
+            console.log("received the whole of the file");
+            const completeFile = new Blob(RECEIVED_CHUNKS);
+            const file = new File([completeFile], "receivedFile");
+            const downloadLink = document.createElement('a');
+            downloadLink.href = URL.createObjectURL(file);
+            downloadLink.download = file.name;
+            downloadLink.click();  // Trigger file download
+        }
+
+    } else {
+        console.error("Error in handleFileResponse: message.data not instance of ArrayBuffer!");
+    }
+}
+
+async function handleSendFileRequest(message) {
+
+    const fileHandle = await getFileHandle(message.fileName);
+    const file = await getFile(fileHandle);
+
+    await sendFile(file);
+
+    console.log("file request received!");
+}
+
+function handleWebRtcMessage(event) {
+    if (event.data instanceof ArrayBuffer) {
+        handleSendFileResponse(event.data);
+        return;
+    }
+    try {
+            const message = JSON.parse(event.data);
+            switch (message.type) {
+                case SEND_FILE_REQUEST:
+                    handleSendFileRequest(message);
+                    break;
+                case SEND_FILE_RESPONSE:
+                    handleSendFileResponse(message);
+                    break;
+                default:
+                    console.log("Error: Unknown message type: " + message.type);
+            }
+        } catch (error) {
+            console.error('Error parsing message:', error, event.data);
+        }
+}
+
 function setUpRtcConnection() {
     rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
+    rtcPeerConnection.ondatachannel = e => {
+            rtcPeerConnection.dc = e.channel;
+            rtcPeerConnection.dc.onmessage = handleWebRtcMessage;
+            rtcPeerConnection.dc.onopen = e => console.log("conn opened");
+            rtcPeerConnection.dc.onclose = () => console.log("Data channel closed");
+        }
     rtcPeerConnection.onicecandidate = event => {
         if (event.candidate) {
             ws.send(JSON.stringify({ type: ICE_CANDIDATE, candidate: event.candidate }));
@@ -132,4 +249,23 @@ function hangUp() {
         rtcPeerConnection.dc.close();
     }
     rtcPeerConnection.close();
+}
+
+function sendMessageViaChannel(message, channel) {
+    try {
+        channel.send(message);
+    } catch (error) {
+        console.error("Error in sendMessageViaChannel: " + error);
+    }
+}
+
+function askForFile(fileName) {
+    RECEIVED_CHUNKS = [];
+    TOTAL_RECEIVED = 0;
+    const sendFileRequest = {type:SEND_FILE_REQUEST, fileName:fileName};
+    sendMessageViaChannel(JSON.stringify(sendFileRequest), sendDataChannel);
+}
+
+async function pickFolderToShare() {
+    DIR_HANDLE = await window.showDirectoryPicker();
 }
