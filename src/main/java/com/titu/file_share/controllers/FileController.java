@@ -3,17 +3,15 @@ package com.titu.file_share.controllers;
 import com.titu.file_share.dtos.FileDataDTO;
 import com.titu.file_share.models.FileData;
 import com.titu.file_share.services.FileService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/user-management")
+@RequestMapping("/file-management")
 @RequiredArgsConstructor
 public class FileController {
 
@@ -34,6 +32,12 @@ public class FileController {
                 .ok("File: " +
                         fileData.getName() +
                         " was successfully published!");
+    }
+
+    @GetMapping("/files")
+    @Operation(description = "returns all the files that a user has published")
+    public ResponseEntity<List<FileDataDTO>> getUserFiles(@RequestParam String username) {
+        return ResponseEntity.ok(fileService.getUserFiles(username));
     }
 
     @GetMapping("/get-pusblished-files")

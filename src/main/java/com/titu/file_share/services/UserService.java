@@ -9,6 +9,8 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class UserService {
@@ -19,6 +21,11 @@ public class UserService {
     @Transactional(readOnly = true)
     public User getUser(String username) {
         return userRepository.getReferenceById(username);
+    }
+
+    @Transactional(readOnly = true)
+    public List<String> getAllUserNames() {
+        return userRepository.getAllUsernames();
     }
 
     @Transactional

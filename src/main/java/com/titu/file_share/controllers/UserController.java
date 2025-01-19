@@ -7,12 +7,20 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/user-management")
 @RequiredArgsConstructor
 public class UserController {
 
     private final UserService userService;
+
+    @GetMapping("/user-list")
+    @Operation(description = "returns a list of all usernames")
+    public ResponseEntity<List<String>> getAllUsernames() {
+        return ResponseEntity.ok(userService.getAllUserNames());
+    }
 
     @PostMapping("/register-user")
     @Operation(description = "registers a user and saves him to the db")

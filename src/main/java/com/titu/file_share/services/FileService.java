@@ -9,6 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.File;
 import java.util.List;
 
 @Service
@@ -16,6 +17,19 @@ import java.util.List;
 public class FileService {
     private final FileRepository fileRepository;
     private final UserService userService;
+
+    @Transactional(readOnly = true)
+    public List<FileDataDTO> getUserFiles(String username) {
+
+        List<FileData> f = fileRepository.findAllByUsername(username);
+
+        return f.stream().map((f1) -> {
+            return FileDataDTO.builder()
+                    .name(f1.getName())
+                    .userName(f1.getUser().getUsername())
+                    .build();
+        }).toList();
+    }
 
     @Transactional
     public FileData publishFile(FileDataDTO fileDataDTO) {
