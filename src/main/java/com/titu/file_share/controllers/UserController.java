@@ -16,6 +16,12 @@ public class UserController {
 
     private final UserService userService;
 
+    @GetMapping("/active-user-list")
+    @Operation(description = "returns a list of all online users")
+    public ResponseEntity<List<String>> getAllActiveUsers() {
+        return ResponseEntity.ok(userService.getAllActiveUsers());
+    }
+
     @GetMapping("/user-list")
     @Operation(description = "returns a list of all usernames")
     public ResponseEntity<List<String>> getAllUsernames() {
@@ -30,14 +36,14 @@ public class UserController {
         } catch (Exception e) {
             return ResponseEntity
                     .internalServerError()
-                    .body(e.toString());
+                    .body(e.getMessage());
         }
 
         return ResponseEntity.ok("User: " + userDTO.getUsername() + " registered successfully");
     }
 
     @PostMapping("/login")
-    public ResponseEntity<String> login(UserDTO userDTO) {
+    public ResponseEntity<String> login(@RequestBody UserDTO userDTO) {
 
         String token = null;
 

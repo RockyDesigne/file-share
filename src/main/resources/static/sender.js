@@ -4,13 +4,14 @@ const SEND_FILE_REQUEST = "sendFileRequest";
 const SEND_FILE_RESPONSE = "sendFileResponse";
 const FILE_RECEIVED = "fileReceived";
 const ICE_CANDIDATE = "iceCandidate";
-const DIR_HANDLE = await window.showDirectoryPicker();
+DIR_HANDLE = null;
 let RECEIVED_CHUNKS = [];
 let TOTAL_RECEIVED = 0;
 let FILE_SIZE = 11;
 const chunkSize = 16384;  // 16KB per chunk (adjust as needed)
 let offset = 0;
 let reader = new FileReader();
+let ws = null;
 const STUN_SERVERS = {
     iceServers: [
         {
@@ -20,7 +21,34 @@ const STUN_SERVERS = {
     iceCandidatePoolSize: 10,
 };
 
-const ws = new WebSocket("ws://localhost:8081/ws");
+function initWebsocket(username) {
+    ws = new WebSocket("ws://localhost:8081/ws");
+    ws.addEventListener("open", () => {
+        ws.send(JSON.stringify({type: "register", username: username}));
+    });
+
+    ws.onmessage = e => {
+        try {
+            const message = JSON.parse(e.data);
+            switch (message.type) {
+                case OFFER:
+                    handleOffer(message);
+                    break;
+                case ANSWER:
+                    handleAnswer(message);
+                    break;
+                case ICE_CANDIDATE:
+                    handleIceCandidate(message);
+                    break;
+                default:
+                    console.log("Error: Unknown message type: " + message.type);
+            }
+        } catch (error) {
+            console.error('Error parsing message:', error, e.data);
+        }
+    }
+
+}
 
 let rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
@@ -33,27 +61,6 @@ rtcPeerConnection.onicecandidate = event => {
 };
 
 let sendDataChannel = null;
-
-ws.onmessage = e => {
-    try {
-        const message = JSON.parse(e.data);
-        switch (message.type) {
-            case OFFER:
-                handleOffer(message);
-                break;
-            case ANSWER:
-                handleAnswer(message);
-                break;
-            case ICE_CANDIDATE:
-                handleIceCandidate(message);
-                break;
-            default:
-                console.log("Error: Unknown message type: " + message.type);
-        }
-    } catch (error) {
-        console.error('Error parsing message:', error, e.data);
-    }
-}
 
 function handleIceCandidate(message) {
     if (message.candidate) {
@@ -107,8 +114,6 @@ function initiateOffer() {
             console.error('Error creating or sending offer:', error);
         });
 }
-
-
 
 function setUpChannel() {
     sendDataChannel = rtcPeerConnection.createDataChannel("sendDataChannel");

@@ -2,6 +2,7 @@ package com.titu.file_share.services;
 
 import com.titu.file_share.Utils.JwtUtil;
 import com.titu.file_share.dtos.UserDTO;
+import com.titu.file_share.handlers.WebRTCSignallingHandler;
 import com.titu.file_share.models.User;
 import com.titu.file_share.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -17,6 +18,11 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
+    private final WebRTCSignallingHandler webRTCSignallingHandler;
+
+    public List<String> getAllActiveUsers() {
+        return webRTCSignallingHandler.getRegisteredSessions().keySet().stream().toList();
+    }
 
     @Transactional(readOnly = true)
     public User getUser(String username) {
@@ -30,6 +36,9 @@ public class UserService {
 
     @Transactional
     public void registerUser(UserDTO userDTO) {
+        if (userRepository.existsById(userDTO.getUsername())) {
+            throw new RuntimeException("Error: username already exists!");
+        }
         try {
             userRepository.save(User.builder()
                     .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))

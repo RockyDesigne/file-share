@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>File Sharing SPA</title>
+    <link rel="stylesheet" href="main.css" />
+</head>
+<body>
+<h1>File Sharing SPA</h1>
+
+<div id="auth-container">
+    <div>
+        <button id="show-login-btn">Go to login</button>
+        <button id="show-register-btn">Go to register</button>
+    </div>
+
+    <div id="login-form" style="display: none;">
+        <h2>Login</h2>
+        <form>
+            <label for="login-username">Username: </label>
+            <input type="text" id="login-username" required />
+
+            <label for="login-password">Password: </label>
+            <input type="text" id="login-password" required />
+
+            <button type="submit"> Login </button>
+        </form>
+        <div id="login-status"></div>
+    </div>
+
+    <div id="register-form" style="display: none;">
+        <h2>Register</h2>
+        <form>
+            <label for="reg-username">Username: </label>
+            <input type="text" id="reg-username" required />
+
+            <label for="reg-password">Password: </label>
+            <input type="text" id="reg-password" required />
+
+            <button type="submit">Register</button>
+        </form>
+        <div id="register-status"></div>
+    </div>
+
+</div>
+
+<div id="app" style="display: none;">
+    <h2>Hello, <span id="current-user">!</span> </h2>
+    <button id="showUserListBtn">Show User List</button>
+    <button id="pickFolderButton">Pick folder to share</button>
+</div>
+
+<!-- Load JavaScript files in order:
+     1) users.js
+     2) files.js
+     3) main.js (which calls functions from the above) -->
+<script src="../static/sender.js"></script>
+<script src="../static/users.js"></script>
+<script src="../static/files.js"></script>
+<script src="../static/main.js"></script>
+</body>
+</html>
