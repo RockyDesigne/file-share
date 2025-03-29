@@ -1,0 +1,54 @@
+server:
+  #address: "${ADDRESS:0.0.0.0}"
+  port: "${PORT:8081}"
+  forward-headers-strategy: framework
+  error:
+    include-message: always
+    include-exception: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  endpoint:
+    health:
+      show-details: always
+    env:
+      enabled: false
+    prometheus:
+      enabled: true
+
+# Configuration properties
+spring:
+  aot:
+    enabled: false
+
+  application:
+    name: "file-share"
+
+  config:
+    location: "file://./src/main/resources/application.yml"
+
+  devtools:
+    add-properties: "${NA_DEVTOOLS:false}"
+
+  jmx:
+    enabled: "${JMX_ENABLED:true}"
+
+  datasource:
+    url: jdbc:sqlite:file-share.db  # Database file name (relative to project directory)
+    driver-class-name: org.sqlite.JDBC
+  jpa:
+    show-sql: true
+    database-platform: org.hibernate.community.dialect.SQLiteDialect
+    hibernate:
+      ddl-auto: update             # Automatically create/update tables
+
+springdoc:
+  swagger-ui:
+    tags-sorter: alpha
+    operations-sorter: alpha
+    doc-expansion: none
+  show-actuator: "${NA_ENABLE_ACTUATOR:true}"

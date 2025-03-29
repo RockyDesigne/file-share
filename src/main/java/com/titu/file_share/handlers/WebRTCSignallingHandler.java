@@ -2,6 +2,7 @@ package com.titu.file_share.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.titu.file_share.dtos.WebSocketMessage;
+import com.titu.file_share.enums.MessageType;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
@@ -10,7 +11,11 @@ import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
 
+import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
+
+import static com.titu.file_share.enums.MessageType.OFFER;
+import static com.titu.file_share.enums.MessageType.REGISTER;
 
 @Component
 @Log4j2
@@ -44,9 +49,17 @@ public class WebRTCSignallingHandler extends TextWebSocketHandler {
             return;
         }
 
-        if (webSocketMessage.getType().equals("register")) {
-            registeredSessions.put(webSocketMessage.getUsername(), session);
+        if (webSocketMessage.getType().equals(REGISTER.getType())) {
+            registeredSessions.put(webSocketMessage.getSenderUsername(), session);
             //unregisteredSessions.remove(session.getId());
+        } else if (webSocketMessage.getType().equals(OFFER.getType())) {
+            if (registeredSessions.containsKey(webSocketMessage.getReceiverUsername())) {
+                try {
+                    registeredSessions.get(webSocketMessage.getReceiverUsername()).sendMessage(message);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+            }
         }
 
 //        registeredSessions.forEach((key, value) -> {
