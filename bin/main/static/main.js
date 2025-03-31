@@ -156,9 +156,25 @@ function loadUserFiles(username) {
     fetchFilesForUser(username).then((files) => {
         const filesContainer = document.getElementById('files-container');
         renderFilesForUser(filesContainer, username, files);
+    }).catch(error => {
+        console.error('Error loading files:', error);
     });
 }
 
-pickFolderButton.addEventListener("click", () => {
-    pickFolderToShare();
+// Prevent form submissions
+document.addEventListener('submit', (e) => {
+    if (!e.target.matches('form[action]')) {
+        e.preventDefault();
+    }
 });
+
+// Handle folder picking
+pickFolderButton.onclick = async (event) => {
+    event.preventDefault();
+    try {
+        await pickFolderToShare();
+    } catch (error) {
+        console.error('Error picking folder:', error);
+    }
+    return false;
+};

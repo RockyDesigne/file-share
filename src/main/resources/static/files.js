@@ -49,10 +49,38 @@ function renderFilesForUser(container, username, files) {
     span.classList.add("clickable");
 
     //attach event listener
-    span.addEventListener("click", () => {
-          initiateOffer();
-          askForFile(file.name);
-        });
+    span.addEventListener("click", async () => {
+      try {
+        // Get the current user from auth
+        const currentUser = getAuthUser();
+        // Add visual feedback early
+        span.classList.add("downloading");
+        const status = document.createElement("span");
+        status.textContent = " (Connecting...)";
+        li.appendChild(status);
+
+        // Set file size for the transfer
+        FILE_SIZE = file.size;
+        RECEIVED_CHUNKS = [];
+        TOTAL_RECEIVED = 0;
+
+        // Initiate WebRTC offer and wait for connection
+        await initiateOffer(currentUser, username);
+        
+        // Update status
+        status.textContent = " (Requesting file...)";
+        
+        // Request the specific file only after connection is ready
+        askForFile(file.name);
+      } catch (error) {
+        console.error("Error during file request:", error);
+        span.classList.remove("downloading");
+        const status = li.querySelector("span");
+        if (status) {
+          status.textContent = " (Connection failed)";
+        }
+      }
+    });
 
     li.appendChild(span);
     ul.appendChild(li);

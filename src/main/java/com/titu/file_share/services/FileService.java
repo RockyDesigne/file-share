@@ -27,6 +27,9 @@ public class FileService {
             return FileDataDTO.builder()
                     .name(f1.getName())
                     .userName(f1.getUser().getUsername())
+                    .size(f1.getSize())
+                    .type(f1.getType())
+                    .lastModified(f1.getLastModified())
                     .build();
         }).toList();
     }
@@ -36,8 +39,28 @@ public class FileService {
         return fileRepository.save(FileData.builder()
                 .name(fileDataDTO.getName())
                 .user(userService.getUser(fileDataDTO.getUserName()))
+                .size(fileDataDTO.getSize())
+                .type(fileDataDTO.getType())
+                .lastModified(fileDataDTO.getLastModified())
+                .sharedAt(System.currentTimeMillis())
                 .build()
         );
+    }
+
+    @Transactional
+    public void removeFile(FileDataDTO fileDataDTO) {
+        fileRepository
+        .findAllByUsername(fileDataDTO.getUserName())
+        .stream()
+        .filter((f) -> f.getName().equals(fileDataDTO.getName()))
+        .findFirst()
+        .ifPresent(fileRepository::delete);
+    }
+
+    @Transactional
+    public void updateFile(FileDataDTO fileDataDTO) {
+        removeFile(fileDataDTO);
+        publishFile(fileDataDTO);
     }
 
     @Transactional(readOnly = true)

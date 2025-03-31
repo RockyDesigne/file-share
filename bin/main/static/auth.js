@@ -1,30 +1,30 @@
 // auth.js - Authentication management
 
 // Generate a unique ID for this tab session
-const TAB_ID = Math.random().toString(36).substring(2);
-const AUTH_TOKEN_KEY = `auth_token_${TAB_ID}`;
-const AUTH_USER_KEY = `auth_user_${TAB_ID}`;
+// const TAB_ID = Math.random().toString(36).substring(2);
+// const AUTH_TOKEN_KEY = `auth_token_${TAB_ID}`;
+// const AUTH_USER_KEY = `auth_user_${TAB_ID}`;
 
 // Store authentication data
 function setAuthData(token, username) {
-    sessionStorage.setItem(AUTH_TOKEN_KEY, token);
-    sessionStorage.setItem(AUTH_USER_KEY, username);
+    localStorage.setItem('auth_token', token);
+    localStorage.setItem('auth_user', username);
 }
 
 // Get stored authentication token
 function getAuthToken() {
-    return sessionStorage.getItem(AUTH_TOKEN_KEY);
+    return localStorage.getItem('auth_token');
 }
 
 // Get stored username
 function getAuthUser() {
-    return sessionStorage.getItem(AUTH_USER_KEY);
+    return localStorage.getItem('auth_user');
 }
 
 // Clear authentication data
 function clearAuthData() {
-    sessionStorage.removeItem(AUTH_TOKEN_KEY);
-    sessionStorage.removeItem(AUTH_USER_KEY);
+    localStorage.removeItem('auth_token');
+    localStorage.removeItem('auth_user');
 }
 
 // Check if user is authenticated

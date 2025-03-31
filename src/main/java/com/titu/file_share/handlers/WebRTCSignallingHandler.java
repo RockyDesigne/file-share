@@ -2,86 +2,97 @@ package com.titu.file_share.handlers;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.titu.file_share.dtos.WebSocketMessage;
-import com.titu.file_share.enums.MessageType;
 import lombok.Getter;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.stereotype.Component;
-import org.springframework.web.socket.CloseStatus;
 import org.springframework.web.socket.TextMessage;
 import org.springframework.web.socket.WebSocketSession;
 import org.springframework.web.socket.handler.TextWebSocketHandler;
+import org.springframework.web.socket.CloseStatus;
 
 import java.io.IOException;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static com.titu.file_share.enums.MessageType.OFFER;
-import static com.titu.file_share.enums.MessageType.REGISTER;
-
-@Component
 @Log4j2
+@Component
 public class WebRTCSignallingHandler extends TextWebSocketHandler {
 
     @Getter
     private final ConcurrentHashMap<String, WebSocketSession> registeredSessions;
-    //private final ConcurrentHashMap<String, WebSocketSession> unregisteredSessions;
+    private final ObjectMapper objectMapper;
+    private final Object sendLock = new Object(); // Lock for synchronizing message sending
 
     public WebRTCSignallingHandler() {
         this.registeredSessions = new ConcurrentHashMap<>();
-        //this.unregisteredSessions = new ConcurrentHashMap<>();
+        this.objectMapper = new ObjectMapper();
     }
 
     @Override
     public void afterConnectionEstablished(WebSocketSession session) {
-        //unregisteredSessions.put(session.getId(), session);
         log.info("Unregistered Client: {} connected!", session.getId());
     }
 
     @Override
     public void handleTextMessage(WebSocketSession session, TextMessage message) {
-
-        ObjectMapper objectMapper = new ObjectMapper();
-        WebSocketMessage webSocketMessage;
-
         try {
-            webSocketMessage = objectMapper.readValue(message.getPayload(), WebSocketMessage.class);
-        } catch (Exception e) {
-            log.error("Error parsing ws message: {}", e.toString());
-            return;
-        }
+            WebSocketMessage webSocketMessage = objectMapper.readValue(message.getPayload(), WebSocketMessage.class);
+            String type = webSocketMessage.getType();
+            log.info("Received message type: {} from: {}", type, webSocketMessage.getSenderUsername());
 
-        if (webSocketMessage.getType().equals(REGISTER.getType())) {
-            registeredSessions.put(webSocketMessage.getSenderUsername(), session);
-            //unregisteredSessions.remove(session.getId());
-        } else if (webSocketMessage.getType().equals(OFFER.getType())) {
-            if (registeredSessions.containsKey(webSocketMessage.getReceiverUsername())) {
-                try {
-                    registeredSessions.get(webSocketMessage.getReceiverUsername()).sendMessage(message);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
+            switch (type) {
+                case "register":
+                    handleRegister(webSocketMessage, session);
+                    break;
+                case "offer":
+                    forwardToReceiver(webSocketMessage);
+                    break;
+                case "answer":
+                    forwardToReceiver(webSocketMessage);
+                    break;
+                case "iceCandidate":
+                    forwardToReceiver(webSocketMessage);
+                    break;
+                default:
+                    log.warn("Unknown message type: {}", type);
             }
+        } catch (Exception e) {
+            log.error("Error handling message: {}", message.getPayload(), e);
         }
+    }
 
-//        registeredSessions.forEach((key, value) -> {
-//            if (!key.equals(session.getId())) {
-//                try {
-//                    value.sendMessage(message);
-//                } catch (IOException ex) {
-//                    throw new RuntimeException(ex);
-//                }
-//            }
-//        });
+    private void handleRegister(WebSocketMessage message, WebSocketSession session) {
+        registeredSessions.put(message.getSenderUsername(), session);
+        log.info("User {} registered", message.getSenderUsername());
+    }
+
+    private void forwardToReceiver(WebSocketMessage message) throws IOException {
+        WebSocketSession receiverSession = registeredSessions.get(message.getReceiverUsername());
+        if (receiverSession != null && receiverSession.isOpen()) {
+            String messageJson = objectMapper.writeValueAsString(message);
+            synchronized (sendLock) {
+                receiverSession.sendMessage(new TextMessage(messageJson));
+            }
+            log.info("Forwarded {} message from {} to {}", 
+                    message.getType(), 
+                    message.getSenderUsername(), 
+                    message.getReceiverUsername());
+        } else {
+            log.warn("Receiver {} not found or connection closed", message.getReceiverUsername());
+        }
     }
 
     @Override
     public void afterConnectionClosed(WebSocketSession session, CloseStatus status) {
-        registeredSessions.remove(session.getId());
-        log.info("Client: {} disconected", session.getId());
+        // Remove the session from registeredSessions
+        registeredSessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
+        log.info("Client: {} disconnected", session.getId());
     }
 
     @Override
     public void handleTransportError(WebSocketSession session, Throwable exception) {
-        registeredSessions.remove(session.getId());
-        log.info("Transport error: {}", exception.toString());
+        log.info("Transport error: {}", exception.getMessage());
+        // Remove the session from registeredSessions
+        registeredSessions.entrySet().removeIf(entry -> entry.getValue().equals(session));
+        log.info("Client: {} disconnected", session.getId());
     }
 }
