@@ -18,6 +18,7 @@ let DIR_HANDLE = null;
 let RECEIVED_CHUNKS = [];
 let TOTAL_RECEIVED = 0;
 let FILE_SIZE = 0;
+let FILE_NAME = null;
 let reader = new FileReader();
 let offset = 0;
 const chunkSize = 16384; // 16KB chunks
@@ -153,7 +154,8 @@ function initiateOffer(senderUsername, receiverUsername) {
 function setupDataChannelHandlers(channel) {
     channel.onmessage = handleWebRtcMessage;
     channel.onopen = () => {
-        console.log("Data channel opened");
+        console.log("Data channel opened! Now asking for file: " + FILE_NAME);
+        askForFile(FILE_NAME);
     };
     channel.onclose = () => console.log("Data channel closed");
     channel.onerror = (error) => {
@@ -362,7 +364,7 @@ async function publishFileMetadata(fileMetadata, action = 'add') {
                 console.error('Authentication error - but not logging out');
                 return;
             }
-            throw new Error(`Failed to ${action} file metadata: ${response.statusText}`);
+            //throw new Error(`Failed to ${action} file metadata: ${response.statusText}`);
         }
     } catch (error) {
         console.error(`Error ${action}ing file metadata:`, error);
@@ -446,52 +448,75 @@ async function startWatchingFolder(dirHandle) {
     }, POLL_INTERVAL);
 }
 
-// Modified pickFolderToShare function
 async function pickFolderToShare() {
-    return safeExecute(async () => {
-        stopWatchingFolder();
-
-        try {
-            // Handle directory picker cancel/dismiss
-            DIR_HANDLE = await window.showDirectoryPicker().catch(e => {
-                if (e.name === 'AbortError') {
-                    // User cancelled the picker - don't treat as error
-                    console.log('Folder picker was cancelled');
-                    return null;
-                }
-                throw e; // Re-throw other errors
-            });
-
-            // If user cancelled, just return
-            if (!DIR_HANDLE) {
-                return;
-            }
-
-            // Get initial file list
-            const files = [];
-            for await (const entry of DIR_HANDLE.values()) {
-                if (entry.kind === 'file') {
-                    const fingerprint = await getFileFingerprint(entry);
-                    files.push(fingerprint);
-                }
-            }
-            
-            // Publish initial files
-            for (const file of files) {
-                await safeExecute(async () => {
-                    await publishFileMetadata(file, 'add');
-                });
-            }
-
-            // Start watching for changes
-            await startWatchingFolder(DIR_HANDLE);
-            console.log("Started sharing folder:", DIR_HANDLE.name);
-        } catch (error) {
-            console.error("Error in pickFolderToShare:", error);
-            showError('Error sharing folder', error);
+    console.log("pick");
+    DIR_HANDLE = await window.showDirectoryPicker();
+    const files = [];
+    for await (const entry of DIR_HANDLE.values()) {
+        if (entry.kind === 'file') {
+            const fingerprint = await getFileFingerprint(entry);
+            files.push(fingerprint);
         }
-    });
+    }
+
+    console.log("files: ");
+    files.forEach((f) => console.log(f.name));
+
+    // // Publish initial files
+    // for (const file of files) {
+    //     await safeExecute(async () => {
+    //         await publishFileMetadata(file, 'add');
+    //     });
+    // }
+
 }
+
+// // Modified pickFolderToShare function
+// async function pickFolderToShare() {
+//     return safeExecute(async () => {
+//         stopWatchingFolder();
+
+//         try {
+//             // Handle directory picker cancel/dismiss
+//             DIR_HANDLE = await window.showDirectoryPicker().catch(e => {
+//                 if (e.name === 'AbortError') {
+//                     // User cancelled the picker - don't treat as error
+//                     console.log('Folder picker was cancelled');
+//                     return null;
+//                 }
+//                 throw e; // Re-throw other errors
+//             });
+
+//             // If user cancelled, just return
+//             if (!DIR_HANDLE) {
+//                 return;
+//             }
+
+//             // Get initial file list
+//             const files = [];
+//             for await (const entry of DIR_HANDLE.values()) {
+//                 if (entry.kind === 'file') {
+//                     const fingerprint = await getFileFingerprint(entry);
+//                     files.push(fingerprint);
+//                 }
+//             }
+            
+//             // Publish initial files
+//             for (const file of files) {
+//                 await safeExecute(async () => {
+//                     await publishFileMetadata(file, 'add');
+//                 });
+//             }
+
+//             // Start watching for changes
+//             await startWatchingFolder(DIR_HANDLE);
+//             console.log("Started sharing folder:", DIR_HANDLE.name);
+//         } catch (error) {
+//             console.error("Error in pickFolderToShare:", error);
+//             showError('Error sharing folder', error);
+//         }
+//     });
+// }
 
 // Function to show error in UI
 function showError(message, error) {

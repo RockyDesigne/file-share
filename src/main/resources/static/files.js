@@ -63,15 +63,15 @@ function renderFilesForUser(container, username, files) {
         FILE_SIZE = file.size;
         RECEIVED_CHUNKS = [];
         TOTAL_RECEIVED = 0;
+        FILE_NAME = file.name;
 
-        // Initiate WebRTC offer and wait for connection
-        await initiateOffer(currentUser, username);
+        initiateOffer(currentUser, username);
         
         // Update status
         status.textContent = " (Requesting file...)";
         
         // Request the specific file only after connection is ready
-        askForFile(file.name);
+        //askForFile(file.name);
       } catch (error) {
         console.error("Error during file request:", error);
         span.classList.remove("downloading");

@@ -44,6 +44,10 @@ showRegisterBtn.addEventListener("click", () => {
     registerFormDiv.style.display = "block";
 });
 
+pickFolderButton.addEventListener("click", () => {
+    pickFolderToShare();
+});
+
 // Function to show authenticated UI
 function showAuthenticatedUI() {
     authContainer.style.display = "none";
@@ -167,14 +171,3 @@ document.addEventListener('submit', (e) => {
         e.preventDefault();
     }
 });
-
-// Handle folder picking
-pickFolderButton.onclick = async (event) => {
-    event.preventDefault();
-    try {
-        await pickFolderToShare();
-    } catch (error) {
-        console.error('Error picking folder:', error);
-    }
-    return false;
-};
