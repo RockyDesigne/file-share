@@ -6,7 +6,8 @@ class WebSocketMessage {
         this.message = message;
     }
 }
-
+const PUBLIC_KEY_INIT = "publicKeyInit";
+const PUBLIC_KEY_RESPONSE = "publicKeyResponse";
 const DATA_CHANNEL_BUFFER_THRESHOLD = 64 * 1024; //64 KB
 const DATA_CHANNEL_MAX_BUFFER_AMOUNT = 256 * 1024;
 const REGISTER = "register";
@@ -27,6 +28,8 @@ const chunkSize = 16384; // 16KB chunks
 let ws = null;
 let folderWatchInterval = null; // Interval for polling changes
 let lastKnownFiles = new Map(); // Cache of known files
+let peerKeyPair = null;
+let derivedSharedKey = null;
 
 const POLL_INTERVAL = 1000; // Check every second
 
@@ -290,6 +293,55 @@ async function handleSendFileRequest(message) {
     }
 }
 
+async function startKeyExchange() {
+    console.log("generating Key pair...");
+    peerKeyPair = await generateKeyPair();
+    console.log("key pair generated: ", peerKeyPair);
+
+    let publicKeyJwk = await exportPublicKey(peerKeyPair.publicKey);
+    console.log("exported public key jwk: ", publicKeyJwk);
+
+    sendMessageViaChannel(JSON.stringify({
+        type: PUBLIC_KEY_INIT,
+        publicKey: publicKeyJwk
+    }), dataChannel);
+}
+
+async function handleReceivePeerPublicKeyInit(message) {
+
+    console.log("generating Key pair...");
+    peerKeyPair = await generateKeyPair();
+    console.log("key pair generated: ", peerKeyPair);
+
+    console.log("public key received: ", message.publicKey);
+    let jwk = message.publicKey;
+    console.log("got jwk: ", jwk);
+    let remotePublicKey = await importRemotePublickKey(jwk);
+    console.log(getAuthUser(), " imported peer's remote public key: ", remotePublicKey);
+
+    derivedSharedKey = await deriveSharedKey(peerKeyPair.privateKey, remotePublicKey);
+    console.log("shared key: ", derivedSharedKey);
+
+    let publicKeyJwk = await exportPublicKey(peerKeyPair.publicKey);
+    console.log("exported public key jwk: ", publicKeyJwk);
+
+    sendMessageViaChannel(JSON.stringify({
+        type: PUBLIC_KEY_RESPONSE,
+        publicKey: publicKeyJwk
+    }), dataChannel);
+}
+
+async function handleReceivePeerPublicKeyResponse(message) {
+    console.log("public key received: ", message.publicKey);
+    let jwk = message.publicKey;
+    console.log("got jwk: ", jwk);
+    let remotePublicKey = await importRemotePublickKey(jwk);
+    console.log(getAuthUser(), " imported peer's remote public key: ", remotePublicKey);
+
+    derivedSharedKey = await deriveSharedKey(peerKeyPair.privateKey, remotePublicKey);
+    console.log("shared key: ", derivedSharedKey);
+}
+
 function handleWebRtcMessage(event) {
     if (event.data instanceof ArrayBuffer) {
         handleSendFileResponse(event.data);
@@ -299,7 +351,19 @@ function handleWebRtcMessage(event) {
         const message = JSON.parse(event.data);
         switch (message.type) {
             case SEND_FILE_REQUEST:
-                handleSendFileRequest(message);
+                handleSendFileRequest(message)
+                .then(() => {
+                    console.log("handled key exchange success...")
+                })
+                .catch((error) => {
+                    console.error("handled key exchange error...", error);
+                });
+                break;
+            case PUBLIC_KEY_INIT:
+                handleReceivePeerPublicKeyInit(message);   
+                break; 
+            case PUBLIC_KEY_RESPONSE:
+                handleReceivePeerPublicKeyResponse(message);
                 break;
             default:
                 console.log("Error: Unknown message type: " + message.type);
