@@ -328,7 +328,7 @@ async function getFileMetadata(fileHandle) {
 }
 
 // Function to publish file metadata to server
-async function publishFileMetadata(fileMetadata, action = 'add') {
+async function publishFileMetadata(fileList, action = 'add') {
     const url = `http://localhost:8081/file-management/${action}-file`;
     const token = getAuthToken();
     
@@ -337,39 +337,20 @@ async function publishFileMetadata(fileMetadata, action = 'add') {
         return;
     }
 
-    try {
+        fileList = fileList.map(file => ({
+            ...file,
+            userName: getAuthUser()
+        }));
+        console.log(fileList);
         const response = await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'Authorization': `Bearer ${token}`
             },
-            body: JSON.stringify({
-                name: fileMetadata.name,
-                size: fileMetadata.size,
-                type: fileMetadata.type,
-                lastModified: fileMetadata.lastModified,
-                userName: getAuthUser()
-            })
+            body: JSON.stringify(fileList)
         });
 
-        // Log the response for debugging
-        console.log(`${action} response:`, {
-            status: response.status,
-            statusText: response.statusText
-        });
-
-        if (!response.ok) {
-            if (response.status === 401) {
-                console.error('Authentication error - but not logging out');
-                return;
-            }
-            //throw new Error(`Failed to ${action} file metadata: ${response.statusText}`);
-        }
-    } catch (error) {
-        console.error(`Error ${action}ing file metadata:`, error);
-        // Don't throw the error up
-    }
 }
 
 // Function to get file fingerprint (for change detection)
@@ -459,15 +440,9 @@ async function pickFolderToShare() {
         }
     }
 
-    console.log("files: ");
-    files.forEach((f) => console.log(f.name));
-
-    // // Publish initial files
-    // for (const file of files) {
-    //     await safeExecute(async () => {
-    //         await publishFileMetadata(file, 'add');
-    //     });
-    // }
+    console.log("Adding files");
+    await publishFileMetadata(files, 'add');
+    console.log("File list added");
 
 }
 

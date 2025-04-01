@@ -21,52 +21,51 @@ public class FileController {
     private final FileService fileService;
 
     @PostMapping("/add-file")
-    public ResponseEntity<String> publishFile(@RequestBody FileDataDTO fileDataDTO) {
-        FileData fileData = null;
+    public ResponseEntity<String> publishFile(@RequestBody List<FileDataDTO> fileDataDTO) {
         try {
-            fileData = fileService.publishFile(fileDataDTO);
+            fileDataDTO.stream()
+            .forEach((f) -> fileService.publishFile(f));
         } catch (Exception e) {
+            log.error(e);
             return ResponseEntity
                     .internalServerError()
                     .body(e.toString());
         }
 
         return ResponseEntity
-                .ok("File: " +
-                        fileData.getName() +
-                        " was successfully published!");
+                .ok("list of files published success...");
     }
 
     @DeleteMapping("/remove-file")
-    public ResponseEntity<String> removeFile(@RequestBody FileDataDTO fileDataDTO) {
+    public ResponseEntity<String> removeFile(@RequestBody List<FileDataDTO> fileDataDTO) {
         try {
-            fileService.removeFile(fileDataDTO);
+            fileDataDTO.stream()
+            .forEach((f) -> fileService.removeFile(f));
         } catch (Exception e) {
+            log.error(e);
             return ResponseEntity
                     .internalServerError()
-                    .body(e.toString());
+                    .body(e.getMessage());
         }
 
         return ResponseEntity
-                .ok("File: " +
-                        fileDataDTO.getName() +
-                        " was successfully removed!");
+                .ok("file list removed success...");
     }
 
     @PutMapping("/update-file")
-    public ResponseEntity<String> updateFile(@RequestBody FileDataDTO fileDataDTO) {
+    public ResponseEntity<String> updateFile(@RequestBody List<FileDataDTO> fileDataDTO) {
         try {
-            fileService.updateFile(fileDataDTO);
+            fileDataDTO.stream()
+            .forEach((f) -> fileService.updateFile(f));
         } catch (Exception e) {
+            log.error(e);
             return ResponseEntity
                     .internalServerError()
-                    .body(e.toString());
+                    .body(e.getMessage());
         }
 
         return ResponseEntity
-                .ok("File: " +
-                        fileDataDTO.getName() +
-                        " was successfully updated!");
+                .ok("Added list of files success...");
     }
 
     @GetMapping("/files")
@@ -85,6 +84,12 @@ public class FileController {
                 .lastModified(f.getLastModified())
                 .userName(f.getUser().getUsername())
                 .build()).toList());
+    }
+
+    @DeleteMapping("/delete-all-files")
+    public ResponseEntity<String> deleteAllFiles() {
+        fileService.deleteAllFiles();
+        return ResponseEntity.ok("ok");
     }
 
 }
