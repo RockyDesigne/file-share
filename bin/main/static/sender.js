@@ -7,6 +7,8 @@ class WebSocketMessage {
     }
 }
 
+const DATA_CHANNEL_BUFFER_THRESHOLD = 64 * 1024; //64 KB
+const DATA_CHANNEL_MAX_BUFFER_AMOUNT = 256 * 1024;
 const REGISTER = "register";
 const OFFER = "offer";
 const ANSWER = "answer";
@@ -110,16 +112,16 @@ function handleOffer(offer) {
     rtcPeerConnection = new RTCPeerConnection();
     rtcPeerConnection.onicecandidate = (e) => {
         if (!e.candidate) {
-            console.log("all candidates have been generated, now sending offer...");
+            console.log("all candidates have been generated, now sending answer...");
             sendMessage(ANSWER, offer.receiverUsername, offer.senderUsername, rtcPeerConnection.localDescription);
         }
     }
     rtcPeerConnection.ondatachannel = (e) => {
         console.log("Data channel:", e);
         dataChannel = e.channel;
-        setupDataChannelHandlers(dataChannel);
+        setupDataChannelHandlersForSendingFile(dataChannel);
     };
-    rtcPeerConnection.setRemoteDescription(offer.message).then(console.log("offer set."));
+    rtcPeerConnection.setRemoteDescription(offer.message).then(console.log("offer set, establishing p2p conn..."));
     rtcPeerConnection.createAnswer().then((a) => rtcPeerConnection.setLocalDescription(a).then(console.log("answer created")));    
 }
 
@@ -139,7 +141,7 @@ function initiateOffer(senderUsername, receiverUsername) {
     rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
 
     dataChannel = rtcPeerConnection.createDataChannel("dataChannel");
-    setupDataChannelHandlers(dataChannel);
+    setupDataChannelHandlersForFileRequest(dataChannel);
 
     rtcPeerConnection.onicecandidate = (e) => {
         if (!e.candidate) {
@@ -147,14 +149,26 @@ function initiateOffer(senderUsername, receiverUsername) {
             sendMessage(OFFER, senderUsername, receiverUsername, rtcPeerConnection.localDescription);
         }
     }
-    rtcPeerConnection.createOffer().then((o) => rtcPeerConnection.setLocalDescription(o).then(console.log("offer set")));
+    rtcPeerConnection.createOffer().then((o) => rtcPeerConnection.setLocalDescription(o).then(console.log("offer created, establishing p2p")));
 
 }
 
-function setupDataChannelHandlers(channel) {
+function setupDataChannelHandlersForSendingFile(channel) {
+    channel.bufferedAmountLowThreshold = DATA_CHANNEL_BUFFER_THRESHOLD;
     channel.onmessage = handleWebRtcMessage;
     channel.onopen = () => {
-        console.log("Data channel opened! Now asking for file: " + FILE_NAME);
+        console.log("Data channel opened, p2p conn established!");
+    };
+    channel.onclose = () => console.log("Data channel closed!");
+    channel.onerror = (error) => {
+        console.error("Data channel error:", error);
+    };
+}
+
+function setupDataChannelHandlersForFileRequest(channel) {
+    channel.onmessage = handleWebRtcMessage;
+    channel.onopen = () => {
+        console.log("Data channel opened, p2p conn established! Now asking for file: " + FILE_NAME);
         askForFile(FILE_NAME);
     };
     channel.onclose = () => console.log("Data channel closed");
@@ -172,18 +186,30 @@ async function sendFile(file) {
 
     offset = 0;
 
+    dataChannel.onbufferedamountlow = () => {
+        console.log("buffer drained, sending...");
+        readNextChunk(file);
+    }
+
     readNextChunk(file);
 
     reader.onload = (event) => {
         // When the file slice is read, send it over the data channel
         const chunk = event.target.result;
+        if (offset >= file.size) {
+            return;
+        }
         sendMessageViaChannel(chunk, dataChannel);
         //rtcPeerConnection.dc.send(JSON.stringify(packet));
         offset += chunk.byteLength;  // Move the offset for the next chunk
 
         // Send the next chunk if there is more data
         if (offset < file.size) {
-            readNextChunk(file);
+            if (dataChannel.bufferedAmount < DATA_CHANNEL_MAX_BUFFER_AMOUNT) {
+                readNextChunk(file);
+            } else {
+                console.log("sending paused because buffer is full...");
+            }
         } else {
             console.log("File transfer complete.");
         }
@@ -195,6 +221,9 @@ async function sendFile(file) {
 }
 
 async function getFileHandle(fileName) {
+    if (DIR_HANDLE == null) {
+        sendMessageViaChannel("User is no longer sharing the requested file!", dataChannel);
+    }
     try {
         const fileHandle = await DIR_HANDLE.getFileHandle(fileName);
         console.log("got file handle");
