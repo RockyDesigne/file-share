@@ -171,8 +171,8 @@ function setupDataChannelHandlersForSendingFile(channel) {
 function setupDataChannelHandlersForFileRequest(channel) {
     channel.onmessage = handleWebRtcMessage;
     channel.onopen = () => {
-        console.log("Data channel opened, p2p conn established! Now asking for file: " + FILE_NAME);
-        askForFile(FILE_NAME);
+        console.log("Data channel opened, p2p conn established!");
+        startKeyExchange().then(() => console.log("key exchange started..."));
     };
     channel.onclose = () => console.log("Data channel closed");
     channel.onerror = (error) => {
@@ -202,7 +202,10 @@ async function sendFile(file) {
         if (offset >= file.size) {
             return;
         }
-        sendMessageViaChannel(chunk, dataChannel);
+
+        encryptChunk(derivedSharedKey, chunk)
+        .then(encryptedChunk => sendMessageViaChannel(encryptedChunk, dataChannel));
+
         //rtcPeerConnection.dc.send(JSON.stringify(packet));
         offset += chunk.byteLength;  // Move the offset for the next chunk
 
@@ -340,11 +343,23 @@ async function handleReceivePeerPublicKeyResponse(message) {
 
     derivedSharedKey = await deriveSharedKey(peerKeyPair.privateKey, remotePublicKey);
     console.log("shared key: ", derivedSharedKey);
+
+    //now that key exchange is done, we can ask for file
+    console.log("key exchange completed, now asking for file: " + FILE_NAME);
+    askForFile(FILE_NAME);
 }
 
 function handleWebRtcMessage(event) {
     if (event.data instanceof ArrayBuffer) {
-        handleSendFileResponse(event.data);
+
+        const {iv, ciphertext} = unpackEncryptedData(event.data);
+
+        decryptChunk(derivedSharedKey, iv, ciphertext)
+        .then(decryptedBuffer => {
+            handleSendFileResponse(decryptedBuffer);
+        })
+        .catch(error => console.error("error decrypting: ", error));
+
         return;
     }
     try {

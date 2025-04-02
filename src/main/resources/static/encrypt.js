@@ -59,6 +59,21 @@ async function encryptChunk(sharedKey, dataBuffer) {
         dataBuffer
     );
 
+    const ivLength = iv.byteLength;
+    const ctBytes = new Uint8Array(ciphertext);
+    const combined = new Uint8Array(ivLength + ctBytes.byteLength);
+
+    combined.set(iv, 0);
+    combined.set(ctBytes, ivLength);
+
+    return combined.buffer;
+}
+
+function unpackEncryptedData(buffer) {
+    const combined = new Uint8Array(buffer);
+    const iv = combined.slice(0,12);
+    const ciphertext = combined.slice(12);
+
     return {iv, ciphertext};
 }
 
