@@ -64,6 +64,7 @@ function renderFilesForUser(container, username, files) {
         RECEIVED_CHUNKS = [];
         TOTAL_RECEIVED = 0;
         FILE_NAME = file.name;
+        PUBLISHED_FILE_HASH = file.hash;
 
         initiateOffer(currentUser, username);
         

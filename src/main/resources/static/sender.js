@@ -22,6 +22,7 @@ let RECEIVED_CHUNKS = [];
 let TOTAL_RECEIVED = 0;
 let FILE_SIZE = 0;
 let FILE_NAME = null;
+let PUBLISHED_FILE_HASH = null;
 let reader = new FileReader();
 let offset = 0;
 const chunkSize = 16384; // 16KB chunks
@@ -259,10 +260,19 @@ function handleSendFileResponse(data) {
         if (TOTAL_RECEIVED === FILE_SIZE) {
             console.log("File transfer complete, creating download");
             const completeFile = new Blob(RECEIVED_CHUNKS);
-            const downloadLink = document.createElement('a');
-            downloadLink.href = URL.createObjectURL(completeFile);
-            downloadLink.download = "receivedFile";
-            downloadLink.click();
+            hashFileSHA256(completeFile).then((receivedFileHash) => {
+                if (receivedFileHash === PUBLISHED_FILE_HASH) {
+                    console.log("Received file hash: " + receivedFileHash + 
+                        " matches published file hash: " + PUBLISHED_FILE_HASH);
+                    const downloadLink = document.createElement('a');
+                    downloadLink.href = URL.createObjectURL(completeFile);
+                    downloadLink.download = FILE_NAME;
+                    downloadLink.click();
+                } else {
+                    console.error("Received file hash: " + receivedFileHash + 
+                        " doesn't match published file hash: " + PUBLISHED_FILE_HASH);
+                }
+            })
             
             // Reset state
             RECEIVED_CHUNKS = [];
