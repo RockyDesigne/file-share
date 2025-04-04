@@ -33,7 +33,6 @@ public class FileService {
                     .userName(f1.getUser().getUsername())
                     .size(f1.getSize())
                     .hash(f1.getHash())
-                    .type(f1.getType())
                     .lastModified(f1.getLastModified())
                     .build();
         }).toList();
@@ -59,7 +58,6 @@ public class FileService {
                 .user(userService.getUser(fileDataDTO.getUserName()))
                 .size(fileDataDTO.getSize())
                 .hash(fileDataDTO.getHash())
-                .type(fileDataDTO.getType())
                 .lastModified(fileDataDTO.getLastModified())
                 .sharedAt(System.currentTimeMillis())
                 .build()

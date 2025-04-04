@@ -464,9 +464,11 @@ async function publishFileMetadata(fileList, action = 'add') {
 // Function to get file fingerprint (for change detection)
 async function getFileFingerprint(fileHandle) {
     const file = await fileHandle.getFile();
+    const fileHash = await hashFileSHA256(file);
     return {
         name: file.name,
         size: file.size,
+        hash: fileHash,
         lastModified: file.lastModified
     };
 }

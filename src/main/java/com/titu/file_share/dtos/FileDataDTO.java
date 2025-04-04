@@ -13,7 +13,6 @@ public class FileDataDTO {
     private String name;
     private Long size;
     private String hash;
-    private String type;
     private Long lastModified;
     private String userName; // Used instead of User entity in DTO
 }

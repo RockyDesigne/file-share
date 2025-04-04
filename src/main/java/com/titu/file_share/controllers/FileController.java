@@ -79,7 +79,7 @@ public class FileController {
             fileService.getFiles().stream().map(f -> FileDataDTO.builder()
                 .name(f.getName())
                 .size(f.getSize())
-                .type(f.getType())
+                .hash(f.getHash())
                 .lastModified(f.getLastModified())
                 .userName(f.getUser().getUsername())
                 .build()).toList());

@@ -28,9 +28,6 @@ public class FileData {
     @Column(nullable = false)
     private String hash;
 
-    @Column
-    private String type;
-
     @Column(name = "last_modified")
     private Long lastModified;
 
