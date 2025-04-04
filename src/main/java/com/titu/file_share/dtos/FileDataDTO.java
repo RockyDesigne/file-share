@@ -1,7 +1,5 @@
 package com.titu.file_share.dtos;
 
-import com.titu.file_share.models.User;
-
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -14,7 +12,8 @@ import lombok.NoArgsConstructor;
 public class FileDataDTO {
     private String name;
     private Long size;
+    private String hash;
     private String type;
     private Long lastModified;
-    private String userName;  // Used instead of User entity in DTO
+    private String userName; // Used instead of User entity in DTO
 }

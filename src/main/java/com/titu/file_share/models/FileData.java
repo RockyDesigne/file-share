@@ -25,6 +25,9 @@ public class FileData {
     @Column(nullable = false)
     private Long size;
 
+    @Column(nullable = false)
+    private String hash;
+
     @Column
     private String type;
 

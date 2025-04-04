@@ -1,7 +1,6 @@
 package com.titu.file_share.controllers;
 
 import com.titu.file_share.dtos.FileDataDTO;
-import com.titu.file_share.models.FileData;
 import com.titu.file_share.services.FileService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
