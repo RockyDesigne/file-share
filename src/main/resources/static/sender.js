@@ -19,10 +19,13 @@ const FILE_RECEIVED = "fileReceived";
 const ICE_CANDIDATE = "iceCandidate";
 let DIR_HANDLE = null;
 let RECEIVED_CHUNKS = [];
+let PRIVATE_KEY_RSA = null;
 let TOTAL_RECEIVED = 0;
 let FILE_SIZE = 0;
 let FILE_NAME = null;
 let PUBLISHED_FILE_HASH = null;
+let PUBLISHED_FILE_SIGNATURE = null;
+let IMPORTED_PUBLIC_KEY_RSA = null;
 let reader = new FileReader();
 let offset = 0;
 const chunkSize = 16384; // 16KB chunks
@@ -261,13 +264,19 @@ function handleSendFileResponse(data) {
             console.log("File transfer complete, creating download");
             const completeFile = new Blob(RECEIVED_CHUNKS);
             hashFileSHA256(completeFile).then((receivedFileHash) => {
+                //sign the received file hash and check against the published signed hash signature
                 if (receivedFileHash === PUBLISHED_FILE_HASH) {
                     console.log("Received file hash: " + receivedFileHash + 
                         " matches published file hash: " + PUBLISHED_FILE_HASH);
-                    const downloadLink = document.createElement('a');
-                    downloadLink.href = URL.createObjectURL(completeFile);
-                    downloadLink.download = FILE_NAME;
-                    downloadLink.click();
+                    if (verifySignedHash(IMPORTED_PUBLIC_KEY_RSA, PUBLISHED_FILE_HASH, PUBLISHED_FILE_SIGNATURE)) {  
+                        console.log("Signature is valid, beggining download."); 
+                        const downloadLink = document.createElement('a');
+                        downloadLink.href = URL.createObjectURL(completeFile);
+                        downloadLink.download = FILE_NAME;
+                        downloadLink.click();
+                    } else {
+                        console.log("Signature is invalid, download aborted!");
+                    }
                 } else {
                     console.error("Received file hash: " + receivedFileHash + 
                         " doesn't match published file hash: " + PUBLISHED_FILE_HASH);
@@ -475,10 +484,14 @@ async function publishFileMetadata(fileList, action = 'add') {
 async function getFileFingerprint(fileHandle) {
     const file = await fileHandle.getFile();
     const fileHash = await hashFileSHA256(file);
+    const hashSignature = await signHashWithRsa(PRIVATE_KEY_RSA, fileHash);
+    console.log("Signed the hash of the file with the RSA private key: ", hashSignature);
+    //sign the hash before sending it
     return {
         name: file.name,
         size: file.size,
         hash: fileHash,
+        signature: hashSignature,
         lastModified: file.lastModified
     };
 }

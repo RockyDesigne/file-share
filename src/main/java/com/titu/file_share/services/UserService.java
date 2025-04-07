@@ -6,6 +6,7 @@ import com.titu.file_share.handlers.WebRTCSignallingHandler;
 import com.titu.file_share.models.User;
 import com.titu.file_share.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.log4j.Log4j2;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -14,11 +15,16 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Log4j2
 public class UserService {
 
     private final UserRepository userRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final WebRTCSignallingHandler webRTCSignallingHandler;
+
+    public String getUserPublicKey(String username) {
+        return userRepository.findById(username).orElseThrow().getPublicKey();
+    }
 
     public List<String> getAllActiveUsers() {
         return webRTCSignallingHandler.getRegisteredSessions().keySet().stream().toList();
@@ -43,8 +49,24 @@ public class UserService {
             userRepository.save(User.builder()
                     .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
                     .username(userDTO.getUsername())
+                    .publicKey(userDTO.getPublicKey())
                     .build());
         } catch (Exception e) {
+            log.error(e);
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Transactional
+    public void updateUser(UserDTO userDTO) {
+        try {
+            userRepository.save(User.builder()
+                    .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
+                    .username(userDTO.getUsername())
+                    .publicKey(userDTO.getPublicKey())
+                    .build());
+        } catch (Exception e) {
+            log.error(e);
             throw new RuntimeException(e);
         }
     }

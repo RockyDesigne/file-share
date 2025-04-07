@@ -82,6 +82,7 @@ public class FileController {
                 .hash(f.getHash())
                 .lastModified(f.getLastModified())
                 .userName(f.getUser().getUsername())
+                .signature(f.getSignature())
                 .build()).toList());
     }
 

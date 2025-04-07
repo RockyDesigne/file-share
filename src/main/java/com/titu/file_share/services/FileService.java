@@ -34,6 +34,7 @@ public class FileService {
                     .size(f1.getSize())
                     .hash(f1.getHash())
                     .lastModified(f1.getLastModified())
+                    .signature(f1.getSignature())
                     .build();
         }).toList();
     }
@@ -60,6 +61,7 @@ public class FileService {
                 .hash(fileDataDTO.getHash())
                 .lastModified(fileDataDTO.getLastModified())
                 .sharedAt(System.currentTimeMillis())
+                .signature(fileDataDTO.getSignature())
                 .build()
         );
     }

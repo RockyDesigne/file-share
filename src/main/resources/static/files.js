@@ -65,6 +65,7 @@ function renderFilesForUser(container, username, files) {
         TOTAL_RECEIVED = 0;
         FILE_NAME = file.name;
         PUBLISHED_FILE_HASH = file.hash;
+        PUBLISHED_FILE_SIGNATURE = file.signature;
 
         initiateOffer(currentUser, username);
         

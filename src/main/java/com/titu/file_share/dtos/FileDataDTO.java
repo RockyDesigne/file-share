@@ -15,4 +15,5 @@ public class FileDataDTO {
     private String hash;
     private Long lastModified;
     private String userName; // Used instead of User entity in DTO
+    private String signature;
 }

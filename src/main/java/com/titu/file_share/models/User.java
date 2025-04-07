@@ -18,4 +18,7 @@ public class User {
     @Column(nullable = false, unique = true)
     private String password;
 
+    @Column(name = "public_key")
+    private String publicKey;
+
 }

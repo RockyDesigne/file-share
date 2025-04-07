@@ -79,6 +79,18 @@ function showUserFilesView(username) {
     const userFilesView = document.getElementById('user-files-view');
     userFilesView.style.display = 'block';
     loadUserFiles(username);
+    getUserPublicKey(username)
+        .then((key) => {
+            console.log("Imported user's public key (raw JWK):", key);
+            return importRsaPssPublicKey(key);
+        })
+        .then((cryptoKey) => {
+            IMPORTED_PUBLIC_KEY_RSA = cryptoKey;
+            console.log("Imported crypto key:", IMPORTED_PUBLIC_KEY_RSA);
+        })
+        .catch(error => {
+            console.error("Error importing public key:", error);
+        });
 }
 
 // Navigation handlers
@@ -93,11 +105,21 @@ loginForm.addEventListener("submit", async (event) => {
     const username = document.getElementById("login-username").value.trim();
     const password = document.getElementById("login-password").value;
 
+    const keyPairRSA = await generateRsaPssKeyPair();
+
+    console.log("RSA key pair generated: ", keyPairRSA);
+
+    const publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
+
+    console.log("Exporing public key in JWK format: ", publicKeyJwkString);
+
+    PRIVATE_KEY_RSA = keyPairRSA.privateKey;
+
     try {
         const response = await fetch(loginUrl, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
-            body: JSON.stringify({username: username, password: password}),
+            body: JSON.stringify({username: username, password: password, publicKey: publicKeyJwkString}),
         });
 
         if (!response.ok) {
@@ -125,11 +147,21 @@ registerForm.addEventListener("submit", async (event) => {
     const password = document.getElementById("reg-password").value;
     currentUser = username;
 
+    const keyPairRSA = await generateRsaPssKeyPair();
+
+    console.log("RSA key pair generated: ", keyPairRSA);
+
+    const publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
+
+    console.log("Exporing public key in JWK format: ", publicKeyJwkString);
+
+    PRIVATE_KEY_RSA = keyPairRSA.privateKey;
+
     try {
         const response = await fetch(registerUrl, {
                     method: "POST",
                     headers: {"Content-Type": "application/json"},
-                    body: JSON.stringify({username: username,password: password}),
+                    body: JSON.stringify({username: username, password: password, publicKey: publicKeyJwkString}),
         });
 
 
@@ -153,6 +185,25 @@ function loadUserList(currentUser) {
             showUserFilesView(clickedUsername);
         });
     });
+}
+
+async function getUserPublicKey(username) {
+    const userKeyApiUrl = `http://localhost:8081/user-management/user-key?username=${encodeURIComponent(username)}`;
+
+    return fetch(userKeyApiUrl)
+        .then((res) => {
+            if (!res.ok) {
+                throw new Error(`HTTP error! Status: ${res.status}`);
+            }
+            return res.json();
+        })
+        .then((key) => {
+            return key;
+        })
+        .catch((error) => {
+            console.error(`Error fetching key for user "${username}":`, error);
+            return "";
+        });
 }
 
 // Load user files
