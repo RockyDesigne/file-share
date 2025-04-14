@@ -268,7 +268,7 @@ function handleSendFileResponse(data) {
                 if (receivedFileHash === PUBLISHED_FILE_HASH) {
                     console.log("Received file hash: " + receivedFileHash + 
                         " matches published file hash: " + PUBLISHED_FILE_HASH);
-                    if (verifySignedHash(IMPORTED_PUBLIC_KEY_RSA, PUBLISHED_FILE_HASH, PUBLISHED_FILE_SIGNATURE)) {  
+                    if (verifySignedHash(IMPORTED_PUBLIC_KEY_RSA, receivedFileHash, PUBLISHED_FILE_SIGNATURE)) {  
                         console.log("Signature is valid, beggining download."); 
                         const downloadLink = document.createElement('a');
                         downloadLink.href = URL.createObjectURL(completeFile);

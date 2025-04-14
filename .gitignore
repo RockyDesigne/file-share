@@ -6,6 +6,8 @@ Version.java
 .gradle
 build/
 bin/
+.vscode/
+file-share.db
 !gradle/wrapper/gradle-wrapper.jar
 !**/src/main/**
 !**/src/test/**
