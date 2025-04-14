@@ -1,7 +1,188 @@
+/* Color Variables */
+:root {
+  --primary-color: #2563eb;
+  --secondary-color: #64748b;
+  --background-color: #f8fafc;
+  --border-color: #e2e8f0;
+  --text-color: #1e293b;
+  --success-color: #10b981;
+  --error-color: #ef4444;
+}
+
+/* Base Styles */
 body {
-  font-family: sans-serif;
-  margin: 20px;
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  margin: 0;
+  padding: 20px;
+  background-color: var(--background-color);
+  color: var(--text-color);
+  line-height: 1.6;
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+
+/* Form Styles */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  background: white;
+  padding: 2rem;
+  border-radius: 8px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+input {
+  width: 100%;
+  padding: 0.75rem;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+}
+
+input[type="password"] {
+  -webkit-text-security: disc;
+}
+
+/* Button Styles */
+button {
+  padding: 0.75rem 1.5rem;
+  border: none;
+  border-radius: 6px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s;
+  background-color: var(--primary-color);
+  color: white;
+}
+
+button:hover {
+  background-color: #1d4ed8;
+  transform: translateY(-1px);
+}
+
+button:disabled {
+  background-color: #e2e8f0;
+  cursor: not-allowed;
+}
+
+/* View Styles */
+.view {
+  margin-top: 2rem;
+  background: white;
+  border-radius: 8px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.view-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.back-button {
+  background-color: white;
+  border: 1px solid var(--border-color);
+  color: var(--text-color);
+  padding: 0.5rem 1rem;
+}
+
+/* List Styles */
+.user-list {
+  list-style: none;
   padding: 0;
+}
+
+.user-list li {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  border-bottom: 1px solid var(--border-color);
+  transition: background-color 0.2s;
+}
+
+.user-list li:hover {
+  background-color: #f1f5f9;
+}
+
+/* Status Messages */
+.status-message {
+  margin-top: 1rem;
+  padding: 1rem;
+  border-radius: 6px;
+}
+
+.status-success {
+  background-color: #dcfce7;
+  color: var(--success-color);
+}
+
+.status-error {
+  background-color: #fee2e2;
+  color: var(--error-color);
+}
+
+/* Loading State */
+.loading {
+  position: relative;
+  opacity: 0.7;
+  pointer-events: none;
+}
+
+.loading::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(255, 255, 255, 0.8);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .container {
+    padding: 0 10px;
+  }
+  
+  .view {
+    padding: 1rem;
+  }
+  
+  .view-header {
+    flex-direction: column;
+    gap: 0.5rem;
+  }
+}
+
+/* Clickable links in the list */
+.clickable {
+  color: blue;
+  text-decoration: underline;
+  cursor: pointer;
 }
 
 h1 {
@@ -12,13 +193,6 @@ h1 {
   margin-top: 20px;
 }
 
-/* Style clickable links in the list */
-.clickable {
-  color: blue;
-  text-decoration: underline;
-  cursor: pointer;
-}
-
 ul {
   list-style: none;
   padding: 0;
@@ -26,42 +200,4 @@ ul {
 
 li {
   margin: 5px 0;
-}
-
-button {
-  margin-bottom: 10px;
-  padding: 5px 10px;
-  cursor: pointer;
-}
-
-/* Navigation styles */
-.view-header {
-  margin-bottom: 20px;
-  padding-bottom: 10px;
-  border-bottom: 1px solid #ccc;
-}
-
-.back-button {
-  background-color: #f8f9fa;
-  border: 1px solid #dee2e6;
-  border-radius: 4px;
-  padding: 8px 16px;
-  font-size: 14px;
-}
-
-.back-button:hover {
-  background-color: #e9ecef;
-}
-
-.user-list {
-  margin-top: 20px;
-}
-
-.user-list li {
-  padding: 8px;
-  border-bottom: 1px solid #eee;
-}
-
-.user-list li:hover {
-  background-color: #f8f9fa;
 }
