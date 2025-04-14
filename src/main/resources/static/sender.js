@@ -20,6 +20,8 @@ const ICE_CANDIDATE = "iceCandidate";
 let DIR_HANDLE = null;
 let RECEIVED_CHUNKS = [];
 let PRIVATE_KEY_RSA = null;
+let FILE_OWNER_USERNAME = null;
+let PEER_USERNAME = null;
 let TOTAL_RECEIVED = 0;
 let FILE_SIZE = 0;
 let FILE_NAME = null;
@@ -142,7 +144,13 @@ function handleAnswer(answer) {
 
 function initiateOffer(senderUsername, receiverUsername) {
     if (rtcPeerConnection) {
-        rtcPeerConnection.close();
+        if (receiverUsername === PEER_USERNAME) {
+            console.log("P2p connection already established, now asking for file: ", FILE_NAME);
+            askForFile(FILE_NAME);
+            return;
+        }
+        console.log("establishing new p2p with: " + receiverUsername + " and closing old one with: " + PEER_USERNAME);
+        hangUp();
     }
 
     rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
@@ -165,6 +173,7 @@ function setupDataChannelHandlersForSendingFile(channel) {
     channel.onmessage = handleWebRtcMessage;
     channel.onopen = () => {
         console.log("Data channel opened, p2p conn established!");
+        PEER_USERNAME = FILE_OWNER_USERNAME;
     };
     channel.onclose = () => console.log("Data channel closed!");
     channel.onerror = (error) => {
@@ -177,6 +186,7 @@ function setupDataChannelHandlersForFileRequest(channel) {
     channel.onopen = () => {
         console.log("Data channel opened, p2p conn established!");
         startKeyExchange().then(() => console.log("key exchange started..."));
+        PEER_USERNAME = FILE_OWNER_USERNAME;
     };
     channel.onclose = () => console.log("Data channel closed");
     channel.onerror = (error) => {
