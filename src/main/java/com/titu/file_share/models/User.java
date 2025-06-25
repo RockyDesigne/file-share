@@ -21,4 +21,7 @@ public class User {
     @Column(name = "public_key")
     private String publicKey;
 
+    @Column(name = "totp_secret_key")
+    private String totpSecretKey;
+
 }

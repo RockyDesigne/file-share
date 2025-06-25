@@ -1,7 +1,9 @@
 // main.js
 
-const loginUrl = "http://localhost:8081/user-management/login";
+const loginWithCredentialsURL = "http://localhost:8081/user-management/login-with-credentials";
+const loginWithTOTPURL = "http://localhost:8081/user-management/login-with-code";
 const registerUrl = "http://localhost:8081/user-management/register-user";
+const getQRImageURL = "http://localhost:8081/user-management/get-user-qr-code?username=";
 
 const loginForm = document.querySelector("#login-form form");
 const registerForm = document.querySelector("#register-form form");
@@ -10,8 +12,12 @@ const showUserListBtn = document.getElementById("showUserListBtn");
 const pickFolderButton = document.getElementById("pickFolderButton");
 const showRegisterBtn = document.getElementById("show-register-btn");
 const showLoginBtn = document.getElementById("show-login-btn");
+const totpFormDiv = document.getElementById("totp-form");
 const registerFormDiv = document.getElementById("register-form");
 const loginFormDiv = document.getElementById("login-form");
+const qrCodeDiv = document.getElementById("qr-code");
+const qrImg = document.getElementById("qr-img");
+const scannedQrCodeBtn = document.getElementById("scanned-qr-btn");
 const loginStatus = document.getElementById("login-status");
 const registerStatus = document.getElementById("register-status");
 const authContainer = document.getElementById("auth-container");
@@ -19,6 +25,7 @@ const currentUserSpan = document.getElementById("current-user");
 const logoutBtn = document.getElementById("logoutBtn");
 
 let currentUser = null;
+let publicKeyJwkString = null;
 
 // Check authentication status on page load
 document.addEventListener('DOMContentLoaded', () => {
@@ -26,6 +33,29 @@ document.addEventListener('DOMContentLoaded', () => {
         currentUser = getAuthUser();
         showAuthenticatedUI();
         initWebsocket(currentUser);
+    }
+});
+
+document.getElementById("otp-form").addEventListener("submit", async function(e) {
+    e.preventDefault();
+    const code = document.getElementById("code").value;
+    // Use stored username/token if needed
+    try {
+        // Replace with your actual API call and payload
+        const response = await fetch(loginWithTOTPURL, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username: currentUser, publicKey: publicKeyJwkString, currentCode: code })
+        });
+        if (!response.ok) throw new Error("Invalid code");
+        const token = await response.text();
+        setAuthData(token, currentUser); // Using setAuthData from auth.js
+
+        loginStatus.textContent = `Logged in as ${currentUser}`;
+        showAuthenticatedUI();
+        initWebsocket(currentUser);
+    } catch (err) {
+        document.getElementById("otp-status").textContent = err.message;
     }
 });
 
@@ -39,14 +69,29 @@ showLoginBtn.addEventListener("click", () => {
     loginFormDiv.style.display = "block";
 });
 
+scannedQrCodeBtn.addEventListener("click", () => {
+    qrCodeDiv.style.display = "none";
+});
+
 showRegisterBtn.addEventListener("click", () => {
     loginFormDiv.style.display = "none";
+    totpFormDiv.style.display = "none";
     registerFormDiv.style.display = "block";
 });
 
 pickFolderButton.addEventListener("click", () => {
     pickFolderToShare();
 });
+
+function showQRCodeUI() {
+    registerFormDiv.style.display = "none";
+    qrCodeDiv.style.display = "block";
+}
+
+function showOTPUI() {
+    loginFormDiv.style.display = "none";
+    totpFormDiv.style.display = "block";
+}
 
 // Function to show authenticated UI
 function showAuthenticatedUI() {
@@ -109,14 +154,14 @@ loginForm.addEventListener("submit", async (event) => {
 
     console.log("RSA key pair generated: ", keyPairRSA);
 
-    const publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
+    publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
 
     console.log("Exporing public key in JWK format: ", publicKeyJwkString);
 
     PRIVATE_KEY_RSA = keyPairRSA.privateKey;
 
     try {
-        const response = await fetch(loginUrl, {
+        const response = await fetch(loginWithCredentialsURL, {
             method: "POST",
             headers: {"Content-Type": "application/json"},
             body: JSON.stringify({username: username, password: password, publicKey: publicKeyJwkString}),
@@ -126,13 +171,14 @@ loginForm.addEventListener("submit", async (event) => {
             throw new Error("Wrong username or password");
         }
 
-        const token = await response.text();
-        setAuthData(token, username); // Using setAuthData from auth.js
+        // const token = await response.text();
+        // setAuthData(token, username); // Using setAuthData from auth.js
         currentUser = username;
 
-        loginStatus.textContent = `Logged in as ${currentUser}`;
-        showAuthenticatedUI();
-        initWebsocket(currentUser);
+        // loginStatus.textContent = `Logged in as ${currentUser}`;
+        // showAuthenticatedUI();
+        // initWebsocket(currentUser);
+        showOTPUI();
 
     } catch (err) {
         loginStatus.textContent = err.message;
@@ -151,7 +197,7 @@ registerForm.addEventListener("submit", async (event) => {
 
     console.log("RSA key pair generated: ", keyPairRSA);
 
-    const publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
+    publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
 
     console.log("Exporing public key in JWK format: ", publicKeyJwkString);
 
@@ -170,7 +216,18 @@ registerForm.addEventListener("submit", async (event) => {
             throw new Error("registration failed: " + txt);
         }
 
-        registerStatus.textContent = "Registration successful, you may now login.";
+        const res = await fetch(getQRImageURL + username);
+
+        if (!res.ok) {
+            const txt = await response.text();
+            throw new Error("registration failed: " + txt);
+        }
+
+        const qrBase64 = await res.text();
+
+        qrImg.src = 'data:image/png;base64,' + qrBase64;
+
+        showQRCodeUI();
 
         //showLoginBtn.click();
     } catch (err) {
