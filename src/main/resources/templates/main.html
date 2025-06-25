@@ -28,16 +28,6 @@
         <div id="login-status"></div>
     </div>
 
-    <div id="totp-form" style="display: none;">
-        <h2>Please enter the code from your authenticator app</h2>
-        <form id="otp-form">
-            <label for="code">Code: </label>
-            <input type="text" id="code" required />
-            <button type="submit" id="verify-btn">Verify</button>
-        </form>
-        <div id="otp-status"></div>
-    </div>
-
     <div id="register-form" style="display: none;">
         <h2>Register</h2>
         <form>
@@ -50,13 +40,6 @@
             <button type="submit">Register</button>
         </form>
         <div id="register-status"></div>
-    </div>
-
-    <div id="qr-code" style="display: none;">
-        <h3>Please scan the QR code in order to access your account</h3>
-        <img id="qr-img" alt="QR Code" style="max-width: 200px; display: block; margin: 0 auto;" />
-        <div id="qr-status"></div>
-        <button type="submit" id="scanned-qr-btn">I have scanned the QR code</button>
     </div>
 
 </div>
