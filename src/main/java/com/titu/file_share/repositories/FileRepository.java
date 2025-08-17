@@ -11,5 +11,8 @@ import java.util.List;
 @Repository
 public interface FileRepository extends JpaRepository<FileData, Long> {
     @Query("SELECT f FROM FileData f WHERE f.user.username = :username")
-    public List<FileData> findAllByUsername(@Param("username") String username);
+    List<FileData> findAllByUsername(@Param("username") String username);
+    @Query(value = "SELECT * FROM file_data f WHERE f.files_registration_number = :reg",
+    nativeQuery = true)
+    List<FileData> findAllByRegNumber(@Param("reg") String reg);
 }

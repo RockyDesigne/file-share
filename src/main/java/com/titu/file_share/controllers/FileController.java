@@ -22,24 +22,20 @@ public class FileController {
     @PostMapping("/add-file")
     public ResponseEntity<String> publishFile(@RequestBody List<FileDataDTO> fileDataDTO) {
         try {
-            fileDataDTO.stream()
-            .forEach((f) -> fileService.publishFile(f));
+            return ResponseEntity.ok(fileService.publishFiles(fileDataDTO));
         } catch (Exception e) {
             log.error(e);
             return ResponseEntity
                     .internalServerError()
                     .body(e.toString());
         }
-
-        return ResponseEntity
-                .ok("list of files published success...");
     }
 
     @DeleteMapping("/remove-file")
     public ResponseEntity<String> removeFile(@RequestBody List<FileDataDTO> fileDataDTO) {
         try {
-            fileDataDTO.stream()
-            .forEach((f) -> fileService.removeFile(f));
+            fileDataDTO
+            .forEach(fileService::removeFile);
         } catch (Exception e) {
             log.error(e);
             return ResponseEntity
@@ -51,39 +47,15 @@ public class FileController {
                 .ok("file list removed success...");
     }
 
-    @PutMapping("/update-file")
-    public ResponseEntity<String> updateFile(@RequestBody List<FileDataDTO> fileDataDTO) {
-        try {
-            fileDataDTO.stream()
-            .forEach((f) -> fileService.updateFile(f));
-        } catch (Exception e) {
-            log.error(e);
-            return ResponseEntity
-                    .internalServerError()
-                    .body(e.getMessage());
-        }
-
-        return ResponseEntity
-                .ok("Added list of files success...");
-    }
-
     @GetMapping("/files")
     @Operation(description = "returns all the files that a user has published")
     public ResponseEntity<List<FileDataDTO>> getUserFiles(@RequestParam(name = "username") String username) {
         return ResponseEntity.ok(fileService.getUserFiles(username));
     }
 
-    @GetMapping("/get-pusblished-files")
-    public ResponseEntity<List<FileDataDTO>> getFiles() {
-        return ResponseEntity.ok(
-            fileService.getFiles().stream().map(f -> FileDataDTO.builder()
-                .name(f.getName())
-                .size(f.getSize())
-                .hash(f.getHash())
-                .lastModified(f.getLastModified())
-                .userName(f.getUser().getUsername())
-                .signature(f.getSignature())
-                .build()).toList());
+    @GetMapping("/get-published-files")
+    public ResponseEntity<List<FileDataDTO>> getFiles(@RequestParam String reg) {
+        return ResponseEntity.ok(fileService.getUserFiles(reg));
     }
 
     @DeleteMapping("/delete-all-files")

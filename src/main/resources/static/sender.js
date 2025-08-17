@@ -17,6 +17,8 @@ const SEND_FILE_REQUEST = "sendFileRequest";
 const SEND_FILE_RESPONSE = "sendFileResponse";
 const FILE_RECEIVED = "fileReceived";
 const ICE_CANDIDATE = "iceCandidate";
+let USERNAME = getUuid();
+let PASSWORD = getUuid();
 let DIR_HANDLE = null;
 let RECEIVED_CHUNKS = [];
 let PRIVATE_KEY_RSA = null;
@@ -468,26 +470,33 @@ async function getFileMetadata(fileHandle) {
 async function publishFileMetadata(fileList, action = 'add') {
     const url = `http://localhost:8081/file-management/${action}-file`;
     const token = getAuthToken();
-    
+
     if (!token) {
         console.error('No auth token found');
         return;
     }
 
-        fileList = fileList.map(file => ({
-            ...file,
-            userName: getAuthUser()
-        }));
-        console.log(fileList);
-        const response = await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify(fileList)
-        });
+    fileList = fileList.map(file => ({
+        ...file,
+        userName: getAuthUser()
+    }));
+    console.log(fileList);
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(fileList)
+    });
 
+    if (!response.ok) {
+        const errText = await response.text().catch(() => '');
+        throw new Error(`Publish failed (${response.status}): ${errText}`);
+    } else {
+        const reg = await response.text();
+        return reg;
+    }
 }
 
 // Function to get file fingerprint (for change detection)
@@ -584,7 +593,9 @@ async function pickFolderToShare() {
     }
 
     console.log("Adding files");
-    await publishFileMetadata(files, 'add');
+    const reg = await publishFileMetadata(files, 'add');
+    const link = `${window.location.origin}/?reg=${encodeURIComponent(USERNAME)}`;
+    console.log("generated link: ", link);
     console.log("File list added");
 
 }

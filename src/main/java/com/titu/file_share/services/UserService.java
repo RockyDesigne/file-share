@@ -22,6 +22,7 @@ public class UserService {
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final WebRTCSignallingHandler webRTCSignallingHandler;
 
+    @Transactional(readOnly = true)
     public String getUserPublicKey(String username) {
         return userRepository.findById(username).orElseThrow().getPublicKey();
     }
@@ -72,7 +73,7 @@ public class UserService {
     }
 
     public String authenticate(UserDTO userDTO) {
-        User user = null;
+        User user;
         try {
             user = userRepository.getReferenceById(userDTO.getUsername());
         } catch (Exception e) {

@@ -5,8 +5,8 @@
  * @param {string} username
  * @returns {Promise<Object[]>}
  */
-function fetchFilesForUser(username) {
-  const filesApiUrl = `http://localhost:8081/file-management/files?username=${encodeURIComponent(username)}`;
+function fetchFilesByReg(reg) {
+  const filesApiUrl = `http://localhost:8081/file-management/get-published-files?reg=${encodeURIComponent(reg)}`;
 
   return fetch(filesApiUrl)
     .then((res) => {
@@ -19,7 +19,7 @@ function fetchFilesForUser(username) {
       return files;
     })
     .catch((error) => {
-      console.error(`Error fetching files for user "${username}":`, error);
+      console.error(`Error fetching files for reg "${reg}":`, error);
       return [];
     });
 }
@@ -30,8 +30,8 @@ function fetchFilesForUser(username) {
  * @param {string} username
  * @param {Object[]} files}
  */
-function renderFilesForUser(container, username, files) {
-  container.innerHTML = `<h2>Files owned by ${username}</h2>`;
+function renderFilesForUser(container, files) {
+  container.innerHTML = `<h2>Files</h2>`;
 
   if (files.length === 0) {
     const msg = document.createElement("p");
@@ -67,9 +67,9 @@ function renderFilesForUser(container, username, files) {
         PUBLISHED_FILE_HASH = file.hash;
         PUBLISHED_FILE_SIGNATURE = file.signature;
 
-        FILE_OWNER_USERNAME = username;
+        FILE_OWNER_USERNAME = file.userName;
 
-        initiateOffer(currentUser, username);
+        initiateOffer(currentUser, FILE_OWNER_USERNAME);
         
         // Update status
         status.textContent = " (Requesting file...)";

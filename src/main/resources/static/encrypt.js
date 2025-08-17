@@ -11,6 +11,10 @@ async function generateKeyPair() {
     return keypair;
 }
 
+function getUuid() {
+  return crypto.randomUUID();
+}
+
 //export key as jwk in order to serialize it
 async function exportPublicKey(publicKey) {
     const jwk = await crypto.subtle.exportKey("jwk", publicKey);

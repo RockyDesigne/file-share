@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.File;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -27,16 +28,29 @@ public class FileService {
 
         List<FileData> f = fileRepository.findAllByUsername(username);
 
-        return f.stream().map((f1) -> {
-            return FileDataDTO.builder()
-                    .name(f1.getName())
-                    .userName(f1.getUser().getUsername())
-                    .size(f1.getSize())
-                    .hash(f1.getHash())
-                    .lastModified(f1.getLastModified())
-                    .signature(f1.getSignature())
-                    .build();
-        }).toList();
+        return f.stream().map((f1) -> FileDataDTO.builder()
+                .name(f1.getName())
+                .userName(f1.getUser().getUsername())
+                .size(f1.getSize())
+                .hash(f1.getHash())
+                .lastModified(f1.getLastModified())
+                .signature(f1.getSignature())
+                .build()).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public List<FileDataDTO> getUserFilesByReg(String reg) {
+
+        List<FileData> f = fileRepository.findAllByRegNumber(reg);
+
+        return f.stream().map((f1) -> FileDataDTO.builder()
+                .name(f1.getName())
+                .userName(f1.getUser().getUsername())
+                .size(f1.getSize())
+                .hash(f1.getHash())
+                .lastModified(f1.getLastModified())
+                .signature(f1.getSignature())
+                .build()).toList();
     }
 
     @Transactional
@@ -45,25 +59,22 @@ public class FileService {
     }
 
     @Transactional
-    public FileData publishFile(FileDataDTO fileDataDTO) {
-        List<FileData> userFileLisst = fileRepository.findAllByUsername(fileDataDTO.getUserName());
-        if (userFileLisst != null){
-            if (userFileLisst.stream()
-            .anyMatch((f) -> f.getName().equals(fileDataDTO.getName()))) {
-                log.error("user: {} already has file with name: {}", fileDataDTO.getUserName(), fileDataDTO.getName());
-                return null;
-            }
-        }
-        return fileRepository.save(FileData.builder()
-                .name(fileDataDTO.getName())
-                .user(userService.getUser(fileDataDTO.getUserName()))
-                .size(fileDataDTO.getSize())
-                .hash(fileDataDTO.getHash())
-                .lastModified(fileDataDTO.getLastModified())
-                .sharedAt(System.currentTimeMillis())
-                .signature(fileDataDTO.getSignature())
-                .build()
-        );
+    public String publishFiles(List<FileDataDTO> fileDataDTO) {
+        String regNumber = UUID.randomUUID().toString();
+        List<FileData> f = fileDataDTO.stream()
+                .map(x -> FileData.builder()
+                        .name(x.getName())
+                        .user(userService.getUser(x.getUserName()))
+                        .size(x.getSize())
+                        .hash(x.getHash())
+                        .lastModified(x.getLastModified())
+                        .sharedAt(System.currentTimeMillis())
+                        .signature(x.getSignature())
+                        .filesRegistrationNumber(regNumber)
+                        .build())
+                .toList();
+        fileRepository.saveAll(f);
+        return regNumber;
     }
 
     @Transactional
@@ -74,12 +85,6 @@ public class FileService {
         .filter((f) -> f.getName().equals(fileDataDTO.getName()))
         .findFirst()
         .ifPresent(fileRepository::delete);
-    }
-
-    @Transactional
-    public void updateFile(FileDataDTO fileDataDTO) {
-        removeFile(fileDataDTO);
-        publishFile(fileDataDTO);
     }
 
     @Transactional(readOnly = true)
