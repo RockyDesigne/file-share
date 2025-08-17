@@ -5,7 +5,7 @@
  * @returns {Promise<string[]>} A promise that resolves to an array of usernames.
  */
 function fetchAllUsers() {
-  const apiUrl = "http://localhost:8081/user-management/active-user-list";
+  const apiUrl = "/user-management/active-user-list";
 
   return fetch(apiUrl)
     .then((res) => {

@@ -1,7 +1,7 @@
 const UrlParams = new URLSearchParams(window.location.search);
 const username = UrlParams.get("username");
 
-const apiUrl = `http://localhost:8081/file-management/files?username=${encodeURIComponent(username)}`;
+const apiUrl = `/file-management/files?username=${encodeURIComponent(username)}`;
 const fileList = document.getElementById("file-list");
 
 fetch(apiUrl, {

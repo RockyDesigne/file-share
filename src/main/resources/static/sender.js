@@ -468,7 +468,7 @@ async function getFileMetadata(fileHandle) {
 
 // Function to publish file metadata to server
 async function publishFileMetadata(fileList, action = 'add') {
-    const url = `http://localhost:8081/file-management/${action}-file`;
+    const url = `/file-management/${action}-file`;
     const token = getAuthToken();
 
     if (!token) {

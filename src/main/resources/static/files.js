@@ -6,7 +6,7 @@
  * @returns {Promise<Object[]>}
  */
 function fetchFilesByReg(reg) {
-  const filesApiUrl = `http://localhost:8081/file-management/get-published-files?reg=${encodeURIComponent(reg)}`;
+  const filesApiUrl = `/file-management/get-published-files?reg=${encodeURIComponent(reg)}`;
 
   return fetch(filesApiUrl)
     .then((res) => {

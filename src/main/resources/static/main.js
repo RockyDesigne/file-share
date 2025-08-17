@@ -1,7 +1,7 @@
 // main.js
 
-const loginUrl = "http://localhost:8081/user-management/login";
-const registerUrl = "http://localhost:8081/user-management/register-user";
+const loginUrl = "/user-management/login";
+const registerUrl = "/user-management/register-user";
 
 //const loginForm = document.querySelector("#login-form form");
 //const registerForm = document.querySelector("#register-form form");
@@ -263,7 +263,7 @@ function loadUserList(currentUser) {
 }
 
 async function getUserPublicKey(username) {
-    const userKeyApiUrl = `http://localhost:8081/user-management/user-key?username=${encodeURIComponent(username)}`;
+    const userKeyApiUrl = `/user-management/user-key?username=${encodeURIComponent(username)}`;
 
     return fetch(userKeyApiUrl)
         .then((res) => {
