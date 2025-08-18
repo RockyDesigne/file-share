@@ -31,37 +31,37 @@ public class FileController {
         }
     }
 
-    @DeleteMapping("/remove-file")
-    public ResponseEntity<String> removeFile(@RequestBody List<FileDataDTO> fileDataDTO) {
-        try {
-            fileDataDTO
-            .forEach(fileService::removeFile);
-        } catch (Exception e) {
-            log.error(e);
-            return ResponseEntity
-                    .internalServerError()
-                    .body(e.getMessage());
-        }
+//    @DeleteMapping("/remove-file")
+//    public ResponseEntity<String> removeFile(@RequestBody List<FileDataDTO> fileDataDTO) {
+//        try {
+//            fileDataDTO
+//            .forEach(fileService::removeFile);
+//        } catch (Exception e) {
+//            log.error(e);
+//            return ResponseEntity
+//                    .internalServerError()
+//                    .body(e.getMessage());
+//        }
+//
+//        return ResponseEntity
+//                .ok("file list removed success...");
+//    }
 
-        return ResponseEntity
-                .ok("file list removed success...");
-    }
-
-    @GetMapping("/files")
-    @Operation(description = "returns all the files that a user has published")
-    public ResponseEntity<List<FileDataDTO>> getUserFiles(@RequestParam(name = "username") String username) {
-        return ResponseEntity.ok(fileService.getUserFiles(username));
-    }
+//    @GetMapping("/files")
+//    @Operation(description = "returns all the files that a user has published")
+//    public ResponseEntity<List<FileDataDTO>> getUserFiles(@RequestParam(name = "username") String username) {
+//        return ResponseEntity.ok(fileService.getUserFiles(username));
+//    }
 
     @GetMapping("/get-published-files")
     public ResponseEntity<List<FileDataDTO>> getFiles(@RequestParam String reg) {
         return ResponseEntity.ok(fileService.getUserFiles(reg));
     }
 
-    @DeleteMapping("/delete-all-files")
-    public ResponseEntity<String> deleteAllFiles() {
-        fileService.deleteAllFiles();
-        return ResponseEntity.ok("ok");
-    }
+//    @DeleteMapping("/delete-all-files")
+//    public ResponseEntity<String> deleteAllFiles() {
+//        fileService.deleteAllFiles();
+//        return ResponseEntity.ok("ok");
+//    }
 
 }

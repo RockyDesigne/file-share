@@ -1,6 +1,10 @@
 package com.titu.file_share.controllers;
 
 import com.titu.file_share.dtos.UserDTO;
+import com.titu.file_share.models.FileData;
+import com.titu.file_share.models.User;
+import com.titu.file_share.repositories.FileRepository;
+import com.titu.file_share.repositories.UserRepository;
 import com.titu.file_share.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +12,7 @@ import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.Duration;
 import java.util.List;
 
 @RestController
@@ -17,18 +22,20 @@ import java.util.List;
 public class UserController {
 
     private final UserService userService;
+//    private final UserRepository userRepository;
+//    private final FileRepository fileRepository;
 
-    @GetMapping("/active-user-list")
-    @Operation(description = "returns a list of all online users")
-    public ResponseEntity<List<String>> getAllActiveUsers() {
-        return ResponseEntity.ok(userService.getAllActiveUsers());
-    }
-
-    @GetMapping("/user-list")
-    @Operation(description = "returns a list of all usernames")
-    public ResponseEntity<List<String>> getAllUsernames() {
-        return ResponseEntity.ok(userService.getAllUserNames());
-    }
+//    @GetMapping("/active-user-list")
+//    @Operation(description = "returns a list of all online users")
+//    public ResponseEntity<List<String>> getAllActiveUsers() {
+//        return ResponseEntity.ok(userService.getAllActiveUsers());
+//    }
+//
+//    @GetMapping("/user-list")
+//    @Operation(description = "returns a list of all usernames")
+//    public ResponseEntity<List<String>> getAllUsernames() {
+//        return ResponseEntity.ok(userService.getAllUserNames());
+//    }
 
     @GetMapping("/user-key")
     @Operation(description = "returns the user's public key")
@@ -72,5 +79,32 @@ public class UserController {
         return ResponseEntity.ok(token);
     }
 
-
+//    @PostMapping("/test")
+//    public void test() {
+//        try {
+//            User u = userRepository.save(User.builder()
+//                    .password("test")
+//                    .username("test")
+//                    .publicKey("test")
+//                    .registerDate(System.currentTimeMillis() - Duration.ofDays(1).toMillis())
+//                    .build());
+//            FileData f = fileRepository.save(FileData.builder()
+//                    .name("testFile")
+//                    .user(u)
+//                    .size(123L)
+//                    .hash("123")
+//                    .lastModified(123L)
+//                    .sharedAt(System.currentTimeMillis())
+//                    .signature("123")
+//                    .filesRegistrationNumber("123")
+//                    .build());
+//        } catch (Exception e) {
+//            log.error(e);
+//            throw new RuntimeException(e);
+//        }
+//    }
+//    @PostMapping("purgeTest")
+//    public void t() {
+//        userService.purgeOldUsers();
+//    }
 }

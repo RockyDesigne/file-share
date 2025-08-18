@@ -65,7 +65,7 @@ function sendMessage(type, senderUsername, receiverUsername, message) {
 }
 
 function initWebsocket(username) {
-    ws = new WebSocket("ws://localhost:8081/ws");
+    ws = new WebSocket("wss://127.0.0.1:8443/ws");
     ws.addEventListener("open", () => {
         sendMessage(REGISTER, username, "", "");
     });
