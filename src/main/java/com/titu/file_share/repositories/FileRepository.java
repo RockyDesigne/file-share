@@ -11,11 +11,14 @@ import java.util.List;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileData, Long> {
+
     @Query("SELECT f FROM FileData f WHERE f.user.username = :username")
     List<FileData> findAllByUsername(@Param("username") String username);
+
     @Query(value = "SELECT * FROM file_data f WHERE f.files_registration_number = :reg",
     nativeQuery = true)
     List<FileData> findAllByRegNumber(@Param("reg") String reg);
+
     @Modifying(clearAutomatically = true, flushAutomatically = true)
     @Query("""
          delete from FileData f
@@ -24,4 +27,13 @@ public interface FileRepository extends JpaRepository<FileData, Long> {
          )
          """)
     int deleteByUsersOlderThan(@Param("cutoff") long cutoff);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+         delete from FileData f
+         where f.user in (
+           select u from User u where u.username = :username
+         )
+         """)
+    int deleteUserFiles(@Param("username") String username);
 }

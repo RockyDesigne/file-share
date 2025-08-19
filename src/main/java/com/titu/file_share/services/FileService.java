@@ -59,6 +59,11 @@ public class FileService {
     }
 
     @Transactional
+    public void deleteUserFiles(String username) {
+        fileRepository.deleteUserFiles(username);
+    }
+
+    @Transactional
     public String publishFiles(List<FileDataDTO> fileDataDTO) {
         String regNumber = UUID.randomUUID().toString();
         List<FileData> f = fileDataDTO.stream()

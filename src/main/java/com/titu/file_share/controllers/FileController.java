@@ -21,14 +21,20 @@ public class FileController {
 
     @PostMapping("/add-file")
     public ResponseEntity<String> publishFile(@RequestBody List<FileDataDTO> fileDataDTO) {
-        try {
-            return ResponseEntity.ok(fileService.publishFiles(fileDataDTO));
-        } catch (Exception e) {
-            log.error(e);
-            return ResponseEntity
-                    .internalServerError()
-                    .body(e.toString());
+        if (!fileDataDTO.isEmpty()) {
+            try {
+                fileService.deleteUserFiles(fileDataDTO.getFirst().getUserName());
+                return ResponseEntity.ok(fileService.publishFiles(fileDataDTO));
+            } catch (Exception e) {
+                log.error(e);
+                return ResponseEntity
+                        .internalServerError()
+                        .body(e.toString());
+            }
         }
+        return ResponseEntity
+                .badRequest()
+                .build();
     }
 
 //    @DeleteMapping("/remove-file")

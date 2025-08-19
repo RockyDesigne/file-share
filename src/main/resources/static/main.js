@@ -1,5 +1,4 @@
 // main.js
-
 const loginUrl = "/user-management/login";
 const registerUrl = "/user-management/register-user";
 
@@ -55,7 +54,7 @@ async function register() {
         }
 
     } catch (err) {
-        console.log("error in registration: ", e);
+        error("error in registration: ", err);
     }
 }
 
@@ -66,11 +65,11 @@ async function loginAnon() {
 
         const keyPairRSA = await generateRsaPssKeyPair();
 
-        console.log("RSA key pair generated: ", keyPairRSA);
+        log("RSA key pair generated: ", keyPairRSA);
     
         const publicKeyJwkString = await exportPublicKey(keyPairRSA.publicKey).then((key) => JSON.stringify(key));
     
-        console.log("Exporting public key in JWK format: ", publicKeyJwkString);
+        log("Exporting public key in JWK format: ", publicKeyJwkString);
     
         PRIVATE_KEY_RSA = keyPairRSA.privateKey;
 
@@ -90,7 +89,7 @@ async function loginAnon() {
             currentUser = username;
 
         } catch (err) {
-            console.log(err);
+            error(err);
         }
 }
 
@@ -144,7 +143,7 @@ function showMainView() {
 }
 
 function showShareFilesView(link) {
-    hideAllViews();
+    //hideAllViews();
     shareLinkEl.href = link;
     shareLinkEl.textContent = link;
     document.getElementById('shared-files-view').style.display = 'block';
@@ -164,15 +163,15 @@ function showUserFilesView(reg) {
     loadUserFiles(reg);
     getUserPublicKey(reg)
         .then((key) => {
-            console.log("Imported user's public key (raw JWK):", key);
+            log("Imported user's public key (raw JWK):", key);
             return importRsaPssPublicKey(key);
         })
         .then((cryptoKey) => {
             IMPORTED_PUBLIC_KEY_RSA = cryptoKey;
-            console.log("Imported crypto key:", IMPORTED_PUBLIC_KEY_RSA);
+            log("Imported crypto key:", IMPORTED_PUBLIC_KEY_RSA);
         })
         .catch(error => {
-            console.error("Error importing public key:", error);
+            error("Error importing public key:", error);
         });
 }
 
@@ -293,7 +292,7 @@ async function getUserPublicKey(username) {
 function loadUserFiles(reg) {
     fetchFilesByReg(reg).then((files) => {
         const filesContainer = document.getElementById('files-container');
-        console.log(files);
+        log(files);
         renderFilesForUser(filesContainer, files);
     }).catch(error => {
         console.error('Error loading files:', error);

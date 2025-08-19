@@ -8,20 +8,20 @@ fetch(apiUrl, {
   method: "GET",
 })
   .then(res => {
-    console.log("Response object:", res);
+    log("Response object:", res);
     if (!res.ok) {
       throw new Error(`HTTP error! Status: ${res.status}`);
     }
     return res.json();
   })
   .then(data => {
-    console.log("Response data:", data);
+    log("Response data:", data);
     data.forEach(file => {
       const listItem = document.createElement("li");
       listItem.textContent = file.name;
       fileList.appendChild(listItem);
     });
   })
-  .catch(error => {
-    console.error("Error when fetching file list:", error);
+  .catch(err => {
+    error("Error when fetching file list:", err);
   });

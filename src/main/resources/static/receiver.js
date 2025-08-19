@@ -1,10 +1,12 @@
-const ws = new WebSocket("ws://localhost:8080/ws")
-ws.onmessage = e => console.log("sdp: " + e.data)
+import { log } from './utils/logger.js';
 
-const rc = new RTCPeerConnection()
+const ws = new WebSocket("ws://localhost:8080/ws");
+ws.onmessage = e => log("sdp: " + e.data);
+
+const rc = new RTCPeerConnection();
 
 rc.ondatachannel = e => {
-    rc.dc = e.channel
-    rc.dc.onmessage = e => console.log("msg: " + e.data)
-    rc.dc.onopen = e => console.log("conn opened")
-}
+    rc.dc = e.channel;
+    rc.dc.onmessage = e => log("msg: " + e.data);
+    rc.dc.onopen = e => log("connection opened");
+};
