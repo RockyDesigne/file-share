@@ -16,6 +16,7 @@ const pickFolderButton = document.getElementById("pickFolderButton");
 //const registerStatus = document.getElementById("register-status");
 const authContainer = document.getElementById("auth-container");
 const currentUserSpan = document.getElementById("current-user");
+const shareLinkEl = document.getElementById("shareLink");
 //const logoutBtn = document.getElementById("logoutBtn");
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -120,7 +121,7 @@ async function loginAnon() {
 
 
 pickFolderButton.addEventListener("click", () => {
-    pickFolderToShare();
+    pickFolderToShare().then((link) => showShareFilesView(link));
 });
 
 // Function to show authenticated UI
@@ -140,6 +141,13 @@ function hideAllViews() {
 function showMainView() {
     hideAllViews();
     document.getElementById('main-view').style.display = 'block';
+}
+
+function showShareFilesView(link) {
+    hideAllViews();
+    shareLinkEl.href = link;
+    shareLinkEl.textContent = link;
+    document.getElementById('shared-files-view').style.display = 'block';
 }
 
 // function showUserListView() {

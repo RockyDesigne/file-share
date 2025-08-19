@@ -593,11 +593,11 @@ async function pickFolderToShare() {
     }
 
     console.log("Adding files");
-    const reg = await publishFileMetadata(files, 'add');
+    await publishFileMetadata(files, 'add');
     const link = `${window.location.origin}/?reg=${encodeURIComponent(USERNAME)}`;
     console.log("generated link: ", link);
     console.log("File list added");
-
+    return link;
 }
 
 // // Modified pickFolderToShare function
