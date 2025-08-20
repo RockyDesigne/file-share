@@ -1,5 +1,5 @@
 server:
-  #address: "${ADDRESS:0.0.0.0}"
+  address: "${ADDRESS:127.0.0.1}"
   port: "${PORT:8081}"
   forward-headers-strategy: framework
   error:
@@ -47,7 +47,10 @@ spring:
       ddl-auto: update             # Automatically create/update tables
 
 springdoc:
+  api-docs:
+    enabled: false
   swagger-ui:
+    enabled: false
     tags-sorter: alpha
     operations-sorter: alpha
     doc-expansion: none

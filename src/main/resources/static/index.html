@@ -3,17 +3,12 @@
 <head>
     <meta charset="UTF-8" />
     <title>File Sharing SPA</title>
-    <link rel="stylesheet" href="main.css" />
+    <link rel="stylesheet" href="index.css" />
 </head>
 <body>
 <h1>File Sharing SPA</h1>
 
 <div id="auth-container">
-    <div>
-        <button id="show-login-btn">Go to login</button>
-        <button id="show-register-btn">Go to register</button>
-    </div>
-
     <div id="login-form" style="display: none;">
         <h2>Login</h2>
         <form>
@@ -50,9 +45,19 @@
     <!-- Main View -->
     <div id="main-view" class="view">
         <div class="app-buttons">
-            <button id="showUserListBtn" type="button">Show User List</button>
+<!--            <button id="showUserListBtn" type="button">Show User List</button>-->
             <button id="pickFolderButton" type="button">Pick folder to share</button>
-            <button id="logoutBtn" type="button">Logout</button>
+<!--            <button id="logoutBtn" type="button">Logout</button>-->
+        </div>
+    </div>
+
+    <!-- Shared Files View -->
+    <div id="shared-files-view" class="view">
+        <div class="app-buttons">
+            <h2>
+                Share the link below to let others download your files<br>
+                <a id="shareLink" target="_blank" rel="noopener noreferrer"></a>
+              </h2>
         </div>
     </div>
 
@@ -66,19 +71,17 @@
 
     <!-- User Files View -->
     <div id="user-files-view" class="view" style="display: none;">
-        <div class="view-header">
-            <button id="back-to-users" class="back-button">← Back to User List</button>
-        </div>
         <div id="files-container"></div>
     </div>
 </div>
 
 <!-- Load JavaScript files in order -->
-<script src="../static/encrypt.js"></script>
-<script src="../static/auth.js"></script>
-<script src="../static/sender.js"></script>
-<script src="../static/users.js"></script>
-<script src="../static/files.js"></script>
-<script src="../static/main.js"></script>
+<script src="./logger.js"></script>
+<script src="./encrypt.js"></script>
+<script src="./auth.js"></script>
+<script src="./sender.js"></script>
+<script src="./users.js"></script>
+<script src="./files.js"></script>
+<script src="./main.js"></script>
 </body>
 </html>

@@ -2,6 +2,7 @@ package com.titu.file_share.repositories;
 
 import com.titu.file_share.models.FileData;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -10,6 +11,29 @@ import java.util.List;
 
 @Repository
 public interface FileRepository extends JpaRepository<FileData, Long> {
+
     @Query("SELECT f FROM FileData f WHERE f.user.username = :username")
-    public List<FileData> findAllByUsername(@Param("username") String username);
+    List<FileData> findAllByUsername(@Param("username") String username);
+
+    @Query(value = "SELECT * FROM file_data f WHERE f.files_registration_number = :reg",
+    nativeQuery = true)
+    List<FileData> findAllByRegNumber(@Param("reg") String reg);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+         delete from FileData f
+         where f.user in (
+           select u from User u where u.registerDate <= :cutoff
+         )
+         """)
+    int deleteByUsersOlderThan(@Param("cutoff") long cutoff);
+
+    @Modifying(clearAutomatically = true, flushAutomatically = true)
+    @Query("""
+         delete from FileData f
+         where f.user in (
+           select u from User u where u.username = :username
+         )
+         """)
+    int deleteUserFiles(@Param("username") String username);
 }

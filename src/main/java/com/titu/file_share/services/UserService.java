@@ -4,13 +4,16 @@ import com.titu.file_share.Utils.JwtUtil;
 import com.titu.file_share.dtos.UserDTO;
 import com.titu.file_share.handlers.WebRTCSignallingHandler;
 import com.titu.file_share.models.User;
+import com.titu.file_share.repositories.FileRepository;
 import com.titu.file_share.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.util.List;
 
 @Service
@@ -19,13 +22,16 @@ import java.util.List;
 public class UserService {
 
     private final UserRepository userRepository;
+    private final FileRepository fileRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final WebRTCSignallingHandler webRTCSignallingHandler;
 
+    @Transactional(readOnly = true)
     public String getUserPublicKey(String username) {
         return userRepository.findById(username).orElseThrow().getPublicKey();
     }
 
+    @Transactional(readOnly = true)
     public List<String> getAllActiveUsers() {
         return webRTCSignallingHandler.getRegisteredSessions().keySet().stream().toList();
     }
@@ -50,6 +56,7 @@ public class UserService {
                     .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
                     .username(userDTO.getUsername())
                     .publicKey(userDTO.getPublicKey())
+                    .registerDate(System.currentTimeMillis())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -64,6 +71,7 @@ public class UserService {
                     .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
                     .username(userDTO.getUsername())
                     .publicKey(userDTO.getPublicKey())
+                    .registerDate(System.currentTimeMillis())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -71,8 +79,9 @@ public class UserService {
         }
     }
 
+    @Transactional(readOnly = true)
     public String authenticate(UserDTO userDTO) {
-        User user = null;
+        User user;
         try {
             user = userRepository.getReferenceById(userDTO.getUsername());
         } catch (Exception e) {
@@ -84,6 +93,15 @@ public class UserService {
         }
 
         return JwtUtil.generateToken(user);
+    }
+
+    @Scheduled(cron = "0 0 * * * *")
+    @Transactional
+    public void purgeOldUsers() {
+        log.info("Purging old users...");
+        long cutoff = System.currentTimeMillis() - Duration.ofDays(1).toMillis();
+        fileRepository.deleteByUsersOlderThan(cutoff);
+        userRepository.deleteByRegisterDateLessThanEqual(cutoff);
     }
 
 }

@@ -3,7 +3,7 @@ package com.titu.file_share.models;
 import jakarta.persistence.*;
 import lombok.*;
 
-import java.util.UUID;
+import java.util.Set;
 
 @Entity
 @Data
@@ -21,4 +21,6 @@ public class User {
     @Column(name = "public_key")
     private String publicKey;
 
+    @Column()
+    private long registerDate;
 }

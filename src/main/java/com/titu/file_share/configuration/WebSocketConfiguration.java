@@ -21,7 +21,6 @@ import java.util.logging.SocketHandler;
 public class WebSocketConfiguration implements WebSocketConfigurer {
 
     private final WebRTCSignallingHandler webRTCSignallingHandler;
-
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry.addHandler(webRTCSignallingHandler, "/ws")
