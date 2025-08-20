@@ -16,6 +16,7 @@ const pickFolderButton = document.getElementById("pickFolderButton");
 const authContainer = document.getElementById("auth-container");
 const currentUserSpan = document.getElementById("current-user");
 const shareLinkEl = document.getElementById("shareLink");
+const WSS_DOMAIN = "secure-file-share.dedyn.io";
 //const logoutBtn = document.getElementById("logoutBtn");
 
 document.addEventListener('DOMContentLoaded', () => {
