@@ -1,4 +1,8 @@
 A secure file sharing project.
+The main reason why I have built this app is that so I can share videos and pictures that I have taken with my DSLR camera. 
+These files would be compressed by messaging applications, and the quality greatly reduced, and also are too big to send via email.
+Also this app provides increased privacy and the capability to share very large files as opposed to other file sharing services, or clouds which keep your data for a time, or make you pay if you want to share very large files.
+
 The app can be accessed at: https://secure-file-share.dedyn.io/
 It works on the latest Chrome and Edge browsers, and should work on any browser that has the [showFilePickerMethod](https://developer.mozilla.org/en-US/docs/Web/API/Window/showOpenFilePicker) and support for webRTC.
 
