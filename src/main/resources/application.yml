@@ -35,7 +35,7 @@ spring:
     add-properties: "${NA_DEVTOOLS:false}"
 
   jmx:
-    enabled: "${JMX_ENABLED:true}"
+    enabled: "${JMX_ENABLED:false}"
 
   datasource:
     url: jdbc:sqlite:file-share.db  # Database file name (relative to project directory)
@@ -54,4 +54,4 @@ springdoc:
     tags-sorter: alpha
     operations-sorter: alpha
     doc-expansion: none
-  show-actuator: "${NA_ENABLE_ACTUATOR:true}"
+  show-actuator: "${NA_ENABLE_ACTUATOR:false}"

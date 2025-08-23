@@ -92,19 +92,7 @@ async function decryptChunk(sharedKey, iv, ciphertext) {
     );
 
     return plainBuffer;
-}
-
-async function hashFileSHA256(file) {
-    const arrayBuffer = await file.arrayBuffer();
-
-    const hashBuffer = await crypto.subtle.digest("SHA-256", arrayBuffer);
-
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-
-    return hashArray
-            .map((b) => b.toString(16).padStart(2, "0"))
-            .join("");
-}  
+} 
 
 /**
  * Generates an RSA-PSS key pair (PKCS #1 v2.2).
@@ -236,3 +224,42 @@ async function verifySignedHash(publicKey, fileHashHex, signatureBase64) {
     
     return isValid;
   }
+
+// ---- vanilla helpers ----
+const CHUNK_SIZE = 4 * 1024 * 1024; // 4 MiB (tweak as you like)
+
+const u64le = (num) => {
+  const b = new Uint8Array(8);
+  let n = BigInt(num);
+  for (let i = 0; i < 8; i++) { b[i] = Number(n & 0xffn); n >>= 8n; }
+  return b;
+};
+const concatU8 = (...parts) => {
+  const len = parts.reduce((s, p) => s + p.length, 0);
+  const out = new Uint8Array(len);
+  let o = 0; for (const p of parts) { out.set(p, o); o += p.length; }
+  return out;
+};
+const toHex = (u8) => [...u8].map(b => b.toString(16).padStart(2, '0')).join('');
+async function sha256(u8) {
+  const ab = u8.buffer.slice(u8.byteOffset, u8.byteOffset + u8.byteLength);
+  return new Uint8Array(await crypto.subtle.digest('SHA-256', ab));
+}
+
+// ---- fingerprint: SHA-256 flat-tree root ----
+async function hashFileSHA256FlatTree(file) {
+  const leafTag = new Uint8Array([0x00]);
+  const rootTag = new Uint8Array([0x01]);
+  const leaves = [];
+  let offset = 0, idx = 0;
+  while (offset < file.size) {
+    const end = Math.min(offset + CHUNK_SIZE, file.size);
+    const chunk = new Uint8Array(await file.slice(offset, end).arrayBuffer());
+    const leafInput = concatU8(leafTag, u64le(idx), u64le(chunk.length), chunk);
+    leaves.push(await sha256(leafInput));
+    offset = end; idx++;
+  }
+  const header = concatU8(rootTag, u64le(leaves.length), u64le(file.size));
+  const root = await sha256(concatU8(header, ...leaves));
+  return toHex(root); // just hex string
+}

@@ -65,7 +65,7 @@ function sendMessage(type, senderUsername, receiverUsername, message) {
 }
 
 function initWebsocket(username) {
-    ws = new WebSocket("wss://127.0.0.1:8443/ws");
+    ws = new WebSocket("wss://" + WSS_DOMAIN + "/ws");
     ws.addEventListener("open", () => {
         sendMessage(REGISTER, username, "", "");
     });
@@ -275,7 +275,7 @@ function handleSendFileResponse(data) {
         if (TOTAL_RECEIVED === FILE_SIZE) {
             log("File transfer complete, creating download");
             const completeFile = new Blob(RECEIVED_CHUNKS);
-            hashFileSHA256(completeFile).then((receivedFileHash) => {
+            hashFileSHA256FlatTree(completeFile).then((receivedFileHash) => {
                 //sign the received file hash and check against the published signed hash signature
                 if (receivedFileHash === PUBLISHED_FILE_HASH) {
                     log("Received file hash: " + receivedFileHash + 
@@ -502,7 +502,7 @@ async function publishFileMetadata(fileList, action = 'add') {
 // Function to get file fingerprint (for change detection)
 async function getFileFingerprint(fileHandle) {
     const file = await fileHandle.getFile();
-    const fileHash = await hashFileSHA256(file);
+    const fileHash = await hashFileSHA256FlatTree(file);
     const hashSignature = await signHashWithRsa(PRIVATE_KEY_RSA, fileHash);
     log("Signed the hash of the file with the RSA private key: ", hashSignature);
     //sign the hash before sending it
@@ -582,13 +582,15 @@ async function startWatchingFolder(dirHandle) {
 }
 
 async function pickFolderToShare() {
-    log("pick");
+    log("picking file to share");
     DIR_HANDLE = await window.showDirectoryPicker();
     const files = [];
     for await (const entry of DIR_HANDLE.values()) {
         if (entry.kind === 'file') {
+            log("getting fingerprint...");
             const fingerprint = await getFileFingerprint(entry);
             files.push(fingerprint);
+            log("got fingerprint");
         }
     }
 
