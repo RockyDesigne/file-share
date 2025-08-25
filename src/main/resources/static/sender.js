@@ -17,6 +17,7 @@ const SEND_FILE_REQUEST = "sendFileRequest";
 const SEND_FILE_RESPONSE = "sendFileResponse";
 const FILE_RECEIVED = "fileReceived";
 const ICE_CANDIDATE = "iceCandidate";
+const TURN_PASSWORD = "";
 let USERNAME = getUuid();
 let PASSWORD = getUuid();
 let DIR_HANDLE = null;
@@ -43,15 +44,31 @@ const POLL_INTERVAL = 1000; // Check every second
 
 const STUN_SERVERS = {
     iceServers: [
-        {
-            urls: ['stun:stun.l.google.com:19302'],
-        },
-        {
-            urls: ['stun:stun.l.google.com:5349'],
-        }
+      {
+        urls: [
+          'stun:turn.secure-file-share.dedyn.io:3478',
+          'stuns:turn.secure-file-share.dedyn.io:5349',
+          'stun:stun.l.google.com:19302',
+        ],
+      },
+      {
+        urls: ['turn:turn.secure-file-share.dedyn.io:3478?transport=udp'],
+        username: 'turnuser',
+        credential: TURN_PASSWORD,
+      },
+      {
+        urls: ['turn:turn.secure-file-share.dedyn.io:3478?transport=tcp'],
+        username: 'turnuser',
+        credential: TURN_PASSWORD,
+      },
+      {
+        urls: ['turns:turn.secure-file-share.dedyn.io:5349?transport=tcp'],
+        username: 'turnuser',
+        credential: TURN_PASSWORD,
+      },
     ],
-    iceCandidatePoolSize: 10,
-};
+    iceCandidatePoolSize: 0,
+  };
 
 let webSocketMessage = new WebSocketMessage(REGISTER, "", "", "");
 
@@ -120,7 +137,7 @@ function handleOffer(offer) {
     if (rtcPeerConnection) {
         rtcPeerConnection.close();
     }
-    rtcPeerConnection = new RTCPeerConnection();
+    rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
     rtcPeerConnection.onicecandidate = (e) => {
         if (!e.candidate) {
             log("all candidates have been generated, now sending answer...");
@@ -132,8 +149,8 @@ function handleOffer(offer) {
         dataChannel = e.channel;
         setupDataChannelHandlersForSendingFile(dataChannel);
     };
-    rtcPeerConnection.setRemoteDescription(offer.message).then(log("offer set, establishing p2p conn..."));
-    rtcPeerConnection.createAnswer().then((a) => rtcPeerConnection.setLocalDescription(a).then(log("answer created")));    
+    rtcPeerConnection.setRemoteDescription(offer.message).then(() => log("offer set, establishing p2p conn..."));
+    rtcPeerConnection.createAnswer().then((a) => rtcPeerConnection.setLocalDescription(a).then(() => log("answer created")));    
 }
 
 function handleAnswer(answer) {
@@ -166,7 +183,7 @@ function initiateOffer(senderUsername, receiverUsername) {
             sendMessage(OFFER, senderUsername, receiverUsername, rtcPeerConnection.localDescription);
         }
     }
-    rtcPeerConnection.createOffer().then((o) => rtcPeerConnection.setLocalDescription(o).then(log("offer created, establishing p2p")));
+    rtcPeerConnection.createOffer().then((o) => rtcPeerConnection.setLocalDescription(o).then(() => log("offer created, establishing p2p")));
 
 }
 
