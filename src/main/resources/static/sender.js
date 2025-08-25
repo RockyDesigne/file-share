@@ -42,33 +42,28 @@ let derivedSharedKey = null;
 
 const POLL_INTERVAL = 1000; // Check every second
 
-const STUN_SERVERS = {
-    iceServers: [
-      {
-        urls: [
-          'stun:turn.secure-file-share.dedyn.io:3478',
-          'stuns:turn.secure-file-share.dedyn.io:5349',
-          'stun:stun.l.google.com:19302',
-        ],
-      },
-      {
-        urls: ['turn:turn.secure-file-share.dedyn.io:3478?transport=udp'],
-        username: 'turnuser',
-        credential: TURN_PASSWORD,
-      },
-      {
-        urls: ['turn:turn.secure-file-share.dedyn.io:3478?transport=tcp'],
-        username: 'turnuser',
-        credential: TURN_PASSWORD,
-      },
-      {
-        urls: ['turns:turn.secure-file-share.dedyn.io:5349?transport=tcp'],
-        username: 'turnuser',
-        credential: TURN_PASSWORD,
-      },
-    ],
-    iceCandidatePoolSize: 0,
-  };
+async function fetchTurnCredentials() {
+    try {
+        const response = await fetch(turnCredUrl, {
+            method: "GET",
+            headers: {
+                "Authorization": `Bearer ${getAuthToken()}`,
+                "Accept": "application/json"
+            },
+            cache: "no-store" 
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to get TURN credentials: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data;
+    } catch (err) {
+        console.error("Error fetching TURN credentials:", err);
+        throw err;
+    }
+}
 
 let webSocketMessage = new WebSocketMessage(REGISTER, "", "", "");
 
@@ -137,7 +132,9 @@ function handleOffer(offer) {
     if (rtcPeerConnection) {
         rtcPeerConnection.close();
     }
-    rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
+    rtcPeerConnection = fetchTurnCredentials().then((r) => {
+        rtcPeerConnection = new RTCPeerConnection({ iceServers: r.iceServers });
+      });      
     rtcPeerConnection.onicecandidate = (e) => {
         if (!e.candidate) {
             log("all candidates have been generated, now sending answer...");
@@ -172,7 +169,7 @@ function initiateOffer(senderUsername, receiverUsername) {
         hangUp();
     }
 
-    rtcPeerConnection = new RTCPeerConnection(STUN_SERVERS);
+    rtcPeerConnection = fetchTurnCredentials().then((r) => new RTCPeerConnection({ iceServers: r.iceServers} ));
 
     dataChannel = rtcPeerConnection.createDataChannel("dataChannel");
     setupDataChannelHandlersForFileRequest(dataChannel);

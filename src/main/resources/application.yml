@@ -21,7 +21,15 @@ management:
       enabled: true
 
 # Configuration properties
+security:
+  jwt:
+    hmac-secret:
+
 spring:
+  security:
+    oauth2:
+      resourceserver:
+        jwt: { }  # uses the bean we declared
   aot:
     enabled: false
 
@@ -45,6 +53,14 @@ spring:
     database-platform: org.hibernate.community.dialect.SQLiteDialect
     hibernate:
       ddl-auto: update             # Automatically create/update tables
+
+# Configuration properties for TURN
+turn:
+  host: turn.secure-file-share.dedyn.io
+  secret:
+  udpPort: 3478
+  tlsPort: 5349
+  ttlSeconds: 14400   # 4 hours
 
 springdoc:
   api-docs:

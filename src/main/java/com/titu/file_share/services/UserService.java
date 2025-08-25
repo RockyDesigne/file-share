@@ -1,6 +1,5 @@
 package com.titu.file_share.services;
 
-import com.titu.file_share.Utils.JwtUtil;
 import com.titu.file_share.dtos.UserDTO;
 import com.titu.file_share.handlers.WebRTCSignallingHandler;
 import com.titu.file_share.models.User;
@@ -25,6 +24,7 @@ public class UserService {
     private final FileRepository fileRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
     private final WebRTCSignallingHandler webRTCSignallingHandler;
+    private final JwtService jwtService;
 
     @Transactional(readOnly = true)
     public String getUserPublicKey(String username) {
@@ -92,7 +92,7 @@ public class UserService {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
-        return JwtUtil.generateToken(user);
+        return jwtService.generateToken(user.getUsername());
     }
 
     @Scheduled(cron = "0 0 * * * *")

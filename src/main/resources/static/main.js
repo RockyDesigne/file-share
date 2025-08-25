@@ -1,6 +1,7 @@
 // main.js
 const loginUrl = "/user-management/login";
 const registerUrl = "/user-management/register-user";
+const turnCredUrl = "/turn-cred";
 
 //const loginForm = document.querySelector("#login-form form");
 //const registerForm = document.querySelector("#register-form form");
