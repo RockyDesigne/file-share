@@ -25,8 +25,6 @@ public class IceController {
 
         TurnCredentialService.IceResponse resp = svc.buildIceResponse(subject);
 
-        log.info(resp);
-
         return ResponseEntity.ok()
                 .cacheControl(CacheControl.noStore())
                 .body(resp);

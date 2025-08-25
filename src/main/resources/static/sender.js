@@ -129,27 +129,52 @@ function handleIceCandidate(message) {
 
 function handleOffer(offer) {
     log("Handling offer from:", offer.senderUsername);
+  
     if (rtcPeerConnection) {
-        rtcPeerConnection.close();
+      try { rtcPeerConnection.close(); } catch (_) {}
     }
-    rtcPeerConnection = fetchTurnCredentials().then((r) => {
+  
+    return fetchTurnCredentials()
+      .then((r) => {
+        // Create and assign the actual RTCPeerConnection
         rtcPeerConnection = new RTCPeerConnection({ iceServers: r.iceServers });
-      });      
-    rtcPeerConnection.onicecandidate = (e) => {
-        if (!e.candidate) {
+  
+        // Wire up handlers right after creating the PC
+        rtcPeerConnection.onicecandidate = (e) => {
+          if (!e.candidate) {
             log("all candidates have been generated, now sending answer...");
-            sendMessage(ANSWER, offer.receiverUsername, offer.senderUsername, rtcPeerConnection.localDescription);
-        }
-    }
-    rtcPeerConnection.ondatachannel = (e) => {
-        log('Data channel "' + e.channel.label + '" has opened.');
-        dataChannel = e.channel;
-        setupDataChannelHandlersForSendingFile(dataChannel);
-    };
-    rtcPeerConnection.setRemoteDescription(offer.message).then(() => log("offer set, establishing p2p conn..."));
-    rtcPeerConnection.createAnswer().then((a) => rtcPeerConnection.setLocalDescription(a).then(() => log("answer created")));    
-}
-
+            sendMessage(
+              ANSWER,
+              offer.receiverUsername,
+              offer.senderUsername,
+              rtcPeerConnection.localDescription
+            );
+          }
+        };
+  
+        rtcPeerConnection.ondatachannel = (e) => {
+          log('Data channel "' + e.channel.label + '" has opened.');
+          dataChannel = e.channel;
+          setupDataChannelHandlersForSendingFile(dataChannel);
+        };
+  
+        // Apply the remote offer before creating an answer
+        return rtcPeerConnection.setRemoteDescription(offer.message);
+      })
+      .then(() => {
+        log("offer set, establishing p2p conn...");
+        return rtcPeerConnection.createAnswer();
+      })
+      .then((answer) => rtcPeerConnection.setLocalDescription(answer))
+      .then(() => {
+        log("answer created");
+      })
+      .catch((err) => {
+        console.error("Failed to handle offer:", err);
+        log("Failed to handle offer: " + err);
+      });
+  }
+  
 function handleAnswer(answer) {
     log("got answer from: " + answer.senderUsername);
     log("answer: " + answer.message);
@@ -160,29 +185,41 @@ function handleAnswer(answer) {
 
 function initiateOffer(senderUsername, receiverUsername) {
     if (rtcPeerConnection) {
-        if (receiverUsername === PEER_USERNAME) {
-            log("P2p connection already established, now asking for file: ", FILE_NAME);
-            askForFile(FILE_NAME);
-            return;
-        }
-        log("establishing new p2p with: " + receiverUsername + " and closing old one with: " + PEER_USERNAME);
-        hangUp();
+      if (receiverUsername === PEER_USERNAME) {
+        log("P2p connection already established, now asking for file: ", FILE_NAME);
+        askForFile(FILE_NAME);
+        return;
+      }
+      log("establishing new p2p with: " + receiverUsername + " and closing old one with: " + PEER_USERNAME);
+      hangUp();
     }
-
-    rtcPeerConnection = fetchTurnCredentials().then((r) => new RTCPeerConnection({ iceServers: r.iceServers} ));
-
-    dataChannel = rtcPeerConnection.createDataChannel("dataChannel");
-    setupDataChannelHandlersForFileRequest(dataChannel);
-
-    rtcPeerConnection.onicecandidate = (e) => {
-        if (!e.candidate) {
+  
+    return fetchTurnCredentials()
+      .then((r) => {
+        rtcPeerConnection = new RTCPeerConnection({ iceServers: r.iceServers });
+  
+        dataChannel = rtcPeerConnection.createDataChannel("dataChannel");
+        setupDataChannelHandlersForFileRequest(dataChannel);
+  
+        rtcPeerConnection.onicecandidate = (e) => {
+          if (!e.candidate) {
             log("all candidates have been generated, now sending offer...");
             sendMessage(OFFER, senderUsername, receiverUsername, rtcPeerConnection.localDescription);
-        }
-    }
-    rtcPeerConnection.createOffer().then((o) => rtcPeerConnection.setLocalDescription(o).then(() => log("offer created, establishing p2p")));
-
-}
+          }
+        };
+  
+        // proceed to SDP offer creation
+        return rtcPeerConnection.createOffer();
+      })
+      .then((offer) => rtcPeerConnection.setLocalDescription(offer))
+      .then(() => {
+        log("offer created, establishing p2p");
+      })
+      .catch((err) => {
+        console.error("Failed to initiate offer:", err);
+        log("Failed to initiate offer: " + err);
+      });
+  }  
 
 function setupDataChannelHandlersForSendingFile(channel) {
     channel.bufferedAmountLowThreshold = DATA_CHANNEL_BUFFER_THRESHOLD;
