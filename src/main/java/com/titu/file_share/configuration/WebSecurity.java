@@ -32,13 +32,10 @@ public class WebSecurity {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .requiresChannel(c -> c.anyRequest().requiresSecure())
+//                .requiresChannel(c -> c.anyRequest().requiresSecure())
                 .csrf(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(auth -> auth
-                        .requestMatchers("/actuator/**").denyAll()
-                        .requestMatchers(HttpMethod.POST, "/register-user").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
-                        .anyRequest().authenticated()
+                        .anyRequest().permitAll()
                 )
                 // Enable Bearer token auth using the JwtDecoder bean above
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));

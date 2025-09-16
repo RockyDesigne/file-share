@@ -6,7 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
+import java.sql.Blob;
 
 @Data
 @Entity
@@ -22,10 +22,10 @@ public class FileData {
     @Column(nullable = false)
     private String name;
 
-    @Column(nullable = false)
+    @Column()
     private Long size;
 
-    @Column(nullable = false)
+    @Column()
     private String hash;
 
     @Column(name = "last_modified")
@@ -37,8 +37,8 @@ public class FileData {
     @Column()
     private String signature;
 
-    @Column()
-    private String filesRegistrationNumber;
+    @Column(nullable = false)
+    private String location;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id", nullable = false)
