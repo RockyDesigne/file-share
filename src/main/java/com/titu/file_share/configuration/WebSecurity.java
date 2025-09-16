@@ -34,13 +34,11 @@ public class WebSecurity {
         http
                 .requiresChannel(c -> c.anyRequest().requiresSecure())
                 .csrf(AbstractHttpConfigurer::disable)
-                .cors(Customizer.withDefaults())
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/actuator/**").denyAll()
-                        .requestMatchers(HttpMethod.GET, "/turn-cred").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/add-file").authenticated()
-                        .requestMatchers(HttpMethod.GET, "/get-published-files").authenticated()
-                        .anyRequest().permitAll()
+                        .requestMatchers(HttpMethod.POST, "/register-user").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/login").permitAll()
+                        .anyRequest().authenticated()
                 )
                 // Enable Bearer token auth using the JwtDecoder bean above
                 .oauth2ResourceServer(oauth -> oauth.jwt(Customizer.withDefaults()));

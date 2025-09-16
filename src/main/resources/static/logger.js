@@ -1,6 +1,6 @@
 const DEV_ENV = "DEV";
 const PROD_ENV = "PROD";
-const ENV = PROD_ENV;
+const ENV = DEV_ENV;
 
 function log(...args) {
     if (ENV === DEV_ENV) {

@@ -24,7 +24,7 @@ public class WebSocketConfiguration implements WebSocketConfigurer {
     @Override
     public void registerWebSocketHandlers(WebSocketHandlerRegistry webSocketHandlerRegistry) {
         webSocketHandlerRegistry.addHandler(webRTCSignallingHandler, "/ws")
-                .setAllowedOrigins("*");
+                .setAllowedOrigins("https://secure-file-share.dedyn.io");
     }
 
 }
