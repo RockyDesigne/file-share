@@ -1,19 +1,22 @@
 import { useEffect, useState } from 'react';
-import { downloadFile, getUserFiles, uploadFile } from '../services/api';
+import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 import styles from '../styles/Dashboard.module.css';
 
 export default function Dashboard() {
-  const { username, logout } = useAuth();
+  const { username, role, logout } = useAuth();
   const [files, setFiles] = useState<{ id: number; name: string }[]>([]);
+  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [viewUsername, setViewUsername] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
   const fetchFiles = async () => {
-    if (!username) return;
+    const targetUser = role === 'ROLE_ADMIN' ? viewUsername ?? username : username;
+    if (!targetUser) return;
     try {
-      const data = await getUserFiles(username);
+      const data = await getUserFiles(targetUser);
       setFiles(data);
     } catch (err: any) {
       setMsg(err?.response?.data ?? err.message);
@@ -23,7 +26,21 @@ export default function Dashboard() {
   useEffect(() => {
     fetchFiles();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [username]);
+  }, [username, role, viewUsername]);
+
+  // Fetch users if admin
+  useEffect(() => {
+    const fetchUsers = async () => {
+      if (role !== 'ROLE_ADMIN') return;
+      try {
+        const list = await getAllUsers();
+        setUsers(list);
+      } catch (err: any) {
+        setMsg(err?.response?.data ?? err.message);
+      }
+    };
+    fetchUsers();
+  }, [role]);
 
   const handleUpload = async () => {
     if (!selectedFile || !username) return;
@@ -38,9 +55,10 @@ export default function Dashboard() {
   };
 
   const handleDownload = async (name: string) => {
-    if (!username) return;
+    const targetUser = role === 'ROLE_ADMIN' ? viewUsername ?? username : username;
+    if (!targetUser) return;
     try {
-      const arrayBuffer = await downloadFile(name, username);
+      const arrayBuffer = await downloadFile(name, targetUser);
       const blob = new Blob([arrayBuffer]);
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
@@ -70,6 +88,30 @@ export default function Dashboard() {
         </div>
       )}
 
+      {role === 'ROLE_ADMIN' && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Users</h2>
+          {users.length === 0 ? (
+            <p>No users found.</p>
+          ) : (
+            <ul className={styles.userList}>
+              {users.map((u) => (
+                <li key={u.username} className={styles.userItem}>
+                  <button
+                    onClick={() => {
+                      setViewUsername(u.username);
+                    }}
+                    className={`${styles.userButton} ${viewUsername === u.username ? styles.activeUser : ''}`}
+                  >
+                    {u.username}
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+      )}
+
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>Upload File</h2>
         <div className={styles.uploadContainer}>
@@ -89,7 +131,7 @@ export default function Dashboard() {
       </section>
 
       <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Your Files</h2>
+        <h2 className={styles.sectionTitle}>{role === 'ROLE_ADMIN' ? `${viewUsername ?? username}'s Files` : 'Your Files'}</h2>
         {files.length === 0 ? (
           <p>No files uploaded yet.</p>
         ) : (

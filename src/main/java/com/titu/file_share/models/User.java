@@ -23,4 +23,7 @@ public class User {
 
     @Column()
     private long registerDate;
+
+    @Column()
+    private String role;
 }

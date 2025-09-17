@@ -47,7 +47,6 @@ public class MainController {
 
         try {
             token = userService.authenticate(userDTO);
-            userService.updateUser(userDTO);
         } catch (Exception e) {
             return ResponseEntity
                     .internalServerError()
@@ -100,8 +99,13 @@ public class MainController {
             throw e;
         }
     }
-    @GetMapping("/get-published-files")
-    public ResponseEntity<List<FileDataDTO>> getFiles(@RequestParam String reg) {
-        return ResponseEntity.ok(fileService.getUserFiles(reg));
+    @GetMapping("/published-files")
+    public ResponseEntity<List<FileDataDTO>> getFiles(@RequestParam String username) {
+        return ResponseEntity.ok(fileService.getUserFiles(username));
     }
+    @GetMapping("/user-list")
+    public ResponseEntity<List<UserDTO>> getUserList() {
+        return ResponseEntity.ok(userService.getAllActiveUsers());
+    }
+
 }

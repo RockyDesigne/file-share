@@ -19,8 +19,11 @@ export default function Login() {
         const res = await registerUser({ username, password });
         setMessage(res);
       } else {
-        const token = await loginUser({ username, password });
-        login(username, token);
+        const jwt = await loginUser({ username, password });
+        // Decode JWT payload to extract role
+        const payload = JSON.parse(atob(jwt.split('.')[1]));
+        const role = payload.role as 'ROLE_ADMIN' | 'ROLE_USER';
+        login(username, jwt, role);
       }
     } catch (err: any) {
       setMessage(err?.response?.data ?? err.message);

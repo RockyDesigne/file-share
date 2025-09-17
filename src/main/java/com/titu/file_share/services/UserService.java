@@ -32,8 +32,14 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<String> getAllActiveUsers() {
-        return webRTCSignallingHandler.getRegisteredSessions().keySet().stream().toList();
+    public List<UserDTO> getAllActiveUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> {
+                    return UserDTO.builder()
+                            .username(u.getUsername())
+                            .build();
+                })
+                .toList();
     }
 
     @Transactional(readOnly = true)
@@ -57,6 +63,7 @@ public class UserService {
                     .username(userDTO.getUsername())
                     .publicKey(userDTO.getPublicKey())
                     .registerDate(System.currentTimeMillis())
+                    .role(userDTO.getRole())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -72,6 +79,7 @@ public class UserService {
                     .username(userDTO.getUsername())
                     .publicKey(userDTO.getPublicKey())
                     .registerDate(System.currentTimeMillis())
+                    .role(userDTO.getRole())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -92,7 +100,7 @@ public class UserService {
             throw new IllegalArgumentException("Invalid username or password");
         }
 
-        return jwtService.generateToken(user.getUsername());
+        return jwtService.generateToken(user);
     }
 
     @Scheduled(cron = "0 0 * * * *")

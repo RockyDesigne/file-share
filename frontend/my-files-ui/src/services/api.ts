@@ -22,13 +22,13 @@ export const registerUser = async (user: UserDTO) => {
   return data;
 };
 
-export const loginUser = async (user: UserDTO) => {
+export const loginUser = async (user: UserDTO): Promise<string> => {
   const { data } = await api.post<string>('/login', user);
-  return data; // token string
+  return data; // JWT token
 };
 
 export const getUserFiles = async (username: string) => {
-  const { data } = await api.get<FileDataDTO[]>(`/get-published-files`, { params: { reg: username } });
+  const { data } = await api.get<FileDataDTO[]>(`/published-files`, { params: { username: username } });
   return data;
 };
 
@@ -39,6 +39,11 @@ export const uploadFile = async (file: File, username: string) => {
   const { data } = await api.post<string>('/upload', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
+  return data;
+};
+
+export const getAllUsers = async () => {
+  const { data } = await api.get<UserDTO[]>('/user-list');
   return data;
 };
 

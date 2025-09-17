@@ -1,19 +1,12 @@
 package com.titu.file_share.controllers;
 
 import com.titu.file_share.dtos.UserDTO;
-import com.titu.file_share.models.FileData;
-import com.titu.file_share.models.User;
-import com.titu.file_share.repositories.FileRepository;
-import com.titu.file_share.repositories.UserRepository;
 import com.titu.file_share.services.UserService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.time.Duration;
-import java.util.List;
 
 @RestController
 @RequestMapping("/user-management")

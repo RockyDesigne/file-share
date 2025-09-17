@@ -1,5 +1,6 @@
 package com.titu.file_share.services;
 
+import com.titu.file_share.models.User;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
@@ -24,17 +25,17 @@ public class JwtService {
         this.signingKey = Keys.hmacShaKeyFor(secret.getBytes(StandardCharsets.UTF_8));
     }
 
-    public String generateToken(String username) {
+    public String generateToken(User user) {
         Instant now = Instant.now();
         return Jwts.builder()
                 .header().type("JWT").and()
                 .issuer("https://secure-file-share.dedyn.io")
                 .audience().add("fileshare-api").and()
-                .subject(username)
+                .subject(user.getUsername())
                 .id(UUID.randomUUID().toString())
                 .issuedAt(Date.from(now))
                 .expiration(new Date(now.toEpochMilli() + EXPIRATION_MS))
-                .claims(Map.of("scope", "fileshare"))
+                .claims(Map.of("role", user.getRole()))
                 .signWith(signingKey) // reused, not recomputed
                 .compact();
     }
