@@ -183,3 +183,196 @@
   color: #b91c1c;
   background-color: #fee2e2;
 }
+
+/* --- Admin toolbar ------------------------------------------------------- */
+.adminToolbar {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.usersButton {
+  padding: 0.5rem 0.875rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #374151;
+  background-color: #f9fafb;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.usersButton:hover {
+  background-color: #f3f4f6;
+}
+
+.usersButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* --- Make sections scroll horizontally if table is wide ------------------ */
+.section {
+  overflow-x: auto; /* keep wide tables usable on small screens */
+}
+
+/* --- Users table --------------------------------------------------------- */
+.userTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  background: white;
+  border-radius: 0.5rem;
+  overflow: hidden; /* round corners for sticky header */
+}
+
+.userTable thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  background: #f9fafb;
+  color: #6b7280;
+  text-align: left;
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.02em;
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #e5e7eb;
+  text-transform: uppercase;
+}
+
+.userTable tbody td {
+  padding: 0.75rem 1rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #111827;
+  vertical-align: middle;
+}
+
+.userTable tbody tr:nth-child(even) {
+  background-color: #fafafa; /* subtle zebra */
+}
+
+.userRow {
+  transition: background-color 0.15s ease;
+}
+
+.userRow:hover {
+  background-color: #f3f4f6;
+}
+
+.activeRow {
+  background-color: #eef2ff;
+  box-shadow: inset 3px 0 0 0 #6366f1; /* left accent */
+}
+
+.userRow:focus-within {
+  outline: 2px solid #93c5fd; /* keyboard focus */
+  outline-offset: -2px;
+}
+
+/* Clickable cells (e.g., username / documents "links") */
+.clickableCell {
+  cursor: pointer;
+  color: #2563eb;
+  font-weight: 500;
+  user-select: none;
+}
+
+.clickableCell:hover {
+  text-decoration: underline;
+}
+
+/* --- User form ----------------------------------------------------------- */
+.form {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .form {
+    grid-template-columns: repeat(2, 1fr); /* two columns on md+ */
+  }
+}
+
+.formField {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.formField label {
+  font-weight: 600;
+  color: #374151;
+  font-size: 0.875rem;
+}
+
+.form input,
+.form select,
+.form textarea {
+  padding: 0.625rem 0.75rem;
+  border: 1px solid #d1d5db;
+  border-radius: 0.5rem;
+  font-size: 0.875rem;
+  background: #fff;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.form input:focus,
+.form select:focus,
+.form textarea:focus {
+  outline: none;
+  border-color: #93c5fd;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.25);
+}
+
+.saveButton,
+.cancelButton {
+  justify-self: start;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 0.5rem;
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition: background-color 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+}
+
+.saveButton {
+  background-color: #2563eb;
+  color: #fff;
+}
+
+.saveButton:hover {
+  background-color: #1d4ed8;
+}
+
+.saveButton:disabled {
+  background-color: #9ca3af;
+  cursor: not-allowed;
+}
+
+.cancelButton {
+  background-color: #f9fafb;
+  color: #374151;
+  border-color: #d1d5db;
+  margin-left: 0.5rem;
+}
+
+.cancelButton:hover {
+  background-color: #f3f4f6;
+}
+
+.cancelButton:focus-visible,
+.saveButton:focus-visible {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+/* Optional tiny helper for alignment of action buttons across grid */
+.formActions {
+  grid-column: 1 / -1; /* full width row */
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}

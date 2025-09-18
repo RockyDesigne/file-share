@@ -56,6 +56,8 @@ export default function Dashboard() {
   const handlerUserInfoEdit = async (userInfo: UserDTO) => {
     try {
       const res = await updateUser(userInfo);
+      const list = await getAllUsers();
+      setUsers(list);
       setMsg(res);
     } catch (err: any) {
       setMsg(err?.response?.data ?? err.message);
@@ -147,10 +149,10 @@ export default function Dashboard() {
                     className={`${styles.userRow} ${viewUsername === u.username ? styles.activeRow : ''}`}
                   >
                     <td
-                      onClick={() => setViewUserInfo(u)}
+                      onClick={() => setViewUserInfo(u)} className={styles.clickableCell}
                     >{u.username}</td>
                     <td
-                      onClick={() => setViewUsername(u.username)}
+                      onClick={() => setViewUsername(u.username)} className={styles.clickableCell}
                     >Documents</td>
                   </tr>
                 ))}
