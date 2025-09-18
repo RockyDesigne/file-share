@@ -104,11 +104,11 @@ public class MainController {
         }
     }
     @GetMapping("/published-files-page")
-    public ResponseEntity<Page<FileDataDTO>> getFiles(@RequestParam String username, @SortDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<Page<FileDataDTO>> getFiles(@RequestParam String username, @SortDefault(sort = "name", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(fileService.getUserFiles(username, pageable));
     }
     @GetMapping("/user-list-page")
-    public ResponseEntity<Page<UserDTO>> getUserList(@SortDefault(sort = "id", direction = Sort.Direction.DESC) Pageable pageable) {
+    public ResponseEntity<Page<UserDTO>> getUserList(@SortDefault(sort = "username", direction = Sort.Direction.DESC) Pageable pageable) {
         return ResponseEntity.ok(userService.getAllActiveUsers(pageable));
     }
 

@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
-import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO } from '../services/api';
+import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO, type Page, type FileDataDTO } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 import styles from '../styles/Dashboard.module.css';
 
 export default function Dashboard() {
   const { username, role, logout } = useAuth();
-  const [files, setFiles] = useState<{ id: number; name: string }[]>([]);
-  const [users, setUsers] = useState<UserDTO[]>([]);
+  const [files, setFiles] = useState<Page<FileDataDTO>>();
+  const [users, setUsers] = useState<Page<UserDTO>>();
   const [viewUsername, setViewUsername] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -91,11 +91,11 @@ export default function Dashboard() {
       {role === 'ROLE_ADMIN' && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Users</h2>
-          {users.length === 0 ? (
+          {users?.totalElements === 0 ? (
             <p>No users found.</p>
           ) : (
             <ul className={styles.userList}>
-              {users.map((u) => (
+              {users?.content.map((u) => (
                 <li key={u.username} className={styles.userItem}>
                   <button
                     onClick={() => {
@@ -132,11 +132,11 @@ export default function Dashboard() {
 
       <section className={styles.section}>
         <h2 className={styles.sectionTitle}>{role === 'ROLE_ADMIN' ? `${viewUsername ?? username}'s Files` : 'Your Files'}</h2>
-        {files.length === 0 ? (
+        {files?.totalElements === 0 ? (
           <p>No files uploaded yet.</p>
         ) : (
           <ul className={styles.fileList}>
-            {files.map((file) => (
+            {files?.content.map((file) => (
               <li key={file.id} className={styles.fileItem}>
                 <span className={styles.fileName}>{file.name}</span>
                 <button

@@ -17,6 +17,15 @@ export interface FileDataDTO {
   // include other props from backend if necessary
 }
 
+// Generic Page interface mirroring Spring's Page object
+export interface Page<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  number: number; // current page index (0-based)
+  size: number;
+}
+
 export const registerUser = async (user: UserDTO) => {
   const { data } = await api.post<string>('/register-user', user);
   return data;
@@ -27,8 +36,10 @@ export const loginUser = async (user: UserDTO): Promise<string> => {
   return data; // JWT token
 };
 
-export const getUserFiles = async (username: string) => {
-  const { data } = await api.get<FileDataDTO[]>(`/published-files`, { params: { username: username } });
+export const getUserFiles = async (username: string, page = 0, size = 10) => {
+  const { data } = await api.get<Page<FileDataDTO>>(`/published-files-page`, {
+    params: { username, page, size },
+  });
   return data;
 };
 
@@ -42,8 +53,10 @@ export const uploadFile = async (file: File, username: string) => {
   return data;
 };
 
-export const getAllUsers = async () => {
-  const { data } = await api.get<UserDTO[]>('/user-list');
+export const getAllUsers = async (page = 0, size = 10) => {
+  const { data } = await api.get<Page<UserDTO>>('/user-list-page', {
+    params: { page, size },
+  });
   return data;
 };
 
