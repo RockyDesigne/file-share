@@ -10,4 +10,5 @@ public class UserDTO {
     private String password;
     private String publicKey;
     private String role;
+    private String address;
 }

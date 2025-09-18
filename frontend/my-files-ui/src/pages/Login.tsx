@@ -9,6 +9,7 @@ export default function Login() {
   const { login } = useAuth();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
+  const [address, setAddress] = useState('');
   const [isRegister, setIsRegister] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
 
@@ -16,10 +17,10 @@ export default function Login() {
     e.preventDefault();
     try {
       if (isRegister) {
-        const res = await registerUser({ username, password });
+        const res = await registerUser({ username, password, address });
         setMessage(res);
       } else {
-        const jwt = await loginUser({ username, password });
+        const jwt = await loginUser({ username, password, address });
         // Decode JWT payload to extract role
         const payload = JSON.parse(atob(jwt.split('.')[1]));
         const role = payload.role as 'ROLE_ADMIN' | 'ROLE_USER';

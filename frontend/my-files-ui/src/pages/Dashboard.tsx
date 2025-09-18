@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO, type Page, type FileDataDTO } from '../services/api';
+import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO, type Page, type FileDataDTO, updateUser } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 import styles from '../styles/Dashboard.module.css';
@@ -8,6 +8,7 @@ export default function Dashboard() {
   const { username, role, logout } = useAuth();
   const [files, setFiles] = useState<Page<FileDataDTO>>();
   const [users, setUsers] = useState<Page<UserDTO>>();
+  const [viewUserInfo, setViewUserInfo] = useState<UserDTO | null>(null);
   const [viewUsername, setViewUsername] = useState<string | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
@@ -42,6 +43,25 @@ export default function Dashboard() {
     fetchUsers();
   }, [role]);
 
+  useEffect(() => {
+    if (!msg) return; // 1️⃣ If there's no message, do nothing
+
+    const timer = setTimeout(() => {
+      setMsg(null);   // 2️⃣ After 3 seconds, clear the message
+    }, 3000);
+
+    return () => clearTimeout(timer); // 3️⃣ Cleanup if msg changes or component unmounts
+  }, [msg]); // 4️⃣ Run this effect whenever msg changes
+
+  const handlerUserInfoEdit = async (userInfo: UserDTO) => {
+    try {
+      const res = await updateUser(userInfo);
+      setMsg(res);
+    } catch (err: any) {
+      setMsg(err?.response?.data ?? err.message);
+    }
+  }
+
   const handleUpload = async () => {
     if (!selectedFile || !username) return;
     try {
@@ -73,6 +93,10 @@ export default function Dashboard() {
 
   if (!username) return null;
 
+  const isAdmin = role === 'ROLE_ADMIN';
+  const hasSelectedUser = !isAdmin || !!viewUsername;
+  // non-admins always have a user (themselves); admins only after clicking a row
+
   return (
     <div className={styles.container}>
       <header className={styles.header}>
@@ -89,67 +113,141 @@ export default function Dashboard() {
       )}
 
       {role === 'ROLE_ADMIN' && (
+        <div className={styles.adminToolbar}>
+          <button
+            onClick={() => {
+              setViewUsername(null);
+              setViewUserInfo(null);
+            }}
+            className={styles.usersButton}
+          >
+            Users
+          </button>
+        </div>
+      )}
+
+      {isAdmin && !hasSelectedUser && !viewUserInfo && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Users</h2>
           {users?.totalElements === 0 ? (
             <p>No users found.</p>
           ) : (
-            <ul className={styles.userList}>
-              {users?.content.map((u) => (
-                <li key={u.username} className={styles.userItem}>
-                  <button
-                    onClick={() => {
-                      setViewUsername(u.username);
-                    }}
-                    className={`${styles.userButton} ${viewUsername === u.username ? styles.activeUser : ''}`}
+            <table className={styles.userTable}>
+              <thead>
+                <tr>
+                  <th>User</th>
+                  <th>Documents</th>
+                </tr>
+              </thead>
+              <tbody>
+                {users?.content.map((u) => (
+                  <tr
+                    key={u.username}
+                    //onClick={() => setViewUsername(u.username)}
+                    className={`${styles.userRow} ${viewUsername === u.username ? styles.activeRow : ''}`}
                   >
-                    {u.username}
+                    <td
+                      onClick={() => setViewUserInfo(u)}
+                    >{u.username}</td>
+                    <td
+                      onClick={() => setViewUsername(u.username)}
+                    >Documents</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+
+          )}
+        </section>
+      )}
+
+      {viewUserInfo && !viewUsername && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Edit User</h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handlerUserInfoEdit(viewUserInfo);
+            }}
+            className={styles.form}
+          >
+            <div className={styles.formField}>
+              <label>Username</label>
+              <input
+                type="text"
+                value={viewUserInfo.username}
+                onChange={(e) =>
+                  setViewUserInfo({ ...viewUserInfo, username: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>Address</label>
+              <input
+                type="address"
+                value={viewUserInfo.address ?? ""}
+                onChange={(e) =>
+                  setViewUserInfo({ ...viewUserInfo, address: e.target.value })
+                }
+              />
+            </div>
+            <button type="submit" className={styles.saveButton}>
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewUserInfo(null)}
+              className={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </form>
+        </section>
+      )}
+
+      {hasSelectedUser && !viewUserInfo && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Upload File</h2>
+          <div className={styles.uploadContainer}>
+            <input
+              type="file"
+              onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
+              className={styles.fileInput}
+            />
+            <button
+              onClick={handleUpload}
+              disabled={!selectedFile}
+              className={`${styles.uploadButton} ${!selectedFile ? styles.disabled : ''}`}
+            >
+              Upload File
+            </button>
+          </div>
+        </section>
+      )}
+
+      {hasSelectedUser && !viewUserInfo && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{role === 'ROLE_ADMIN' ? `${viewUsername ?? username}'s Files` : 'Your Files'}</h2>
+          {files?.totalElements === 0 ? (
+            <p>No files uploaded yet.</p>
+          ) : (
+            <ul className={styles.fileList}>
+              {files?.content.map((file) => (
+                <li key={file.id} className={styles.fileItem}>
+                  <span className={styles.fileName}>{file.name}</span>
+                  <button
+                    onClick={() => handleDownload(file.name)}
+                    className={styles.downloadButton}
+                  >
+                    Download
                   </button>
                 </li>
               ))}
             </ul>
           )}
-        </section>
-      )}
+        </section>)}
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>Upload File</h2>
-        <div className={styles.uploadContainer}>
-          <input
-            type="file"
-            onChange={(e) => setSelectedFile(e.target.files?.[0] ?? null)}
-            className={styles.fileInput}
-          />
-          <button
-            onClick={handleUpload}
-            disabled={!selectedFile}
-            className={`${styles.uploadButton} ${!selectedFile ? styles.disabled : ''}`}
-          >
-            Upload File
-          </button>
-        </div>
-      </section>
-
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{role === 'ROLE_ADMIN' ? `${viewUsername ?? username}'s Files` : 'Your Files'}</h2>
-        {files?.totalElements === 0 ? (
-          <p>No files uploaded yet.</p>
-        ) : (
-          <ul className={styles.fileList}>
-            {files?.content.map((file) => (
-              <li key={file.id} className={styles.fileItem}>
-                <span className={styles.fileName}>{file.name}</span>
-                <button
-                  onClick={() => handleDownload(file.name)}
-                  className={styles.downloadButton}
-                >
-                  Download
-                </button>
-              </li>
-            ))}
-          </ul>
-        )}
-      </section>
     </div>
   );
 }

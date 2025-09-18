@@ -44,6 +44,20 @@ public class MainController {
         return ResponseEntity.ok("User: " + userDTO.getUsername() + " registered successfully");
     }
 
+    @PostMapping("/update-user")
+    @Operation(description = "registers a user and saves him to the db")
+    public ResponseEntity<String> updateUser(@RequestBody UserDTO userDTO) {
+        try {
+            userService.updateUser(userDTO);
+        } catch (Exception e) {
+            return ResponseEntity
+                    .internalServerError()
+                    .body(e.getMessage());
+        }
+
+        return ResponseEntity.ok("User: " + userDTO.getUsername() + " registered successfully");
+    }
+
     @PostMapping("/login")
     public ResponseEntity<String> login(@RequestBody UserDTO userDTO) {
 

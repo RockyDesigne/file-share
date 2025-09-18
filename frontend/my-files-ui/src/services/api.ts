@@ -9,6 +9,7 @@ const api = axios.create({
 export interface UserDTO {
   username: string;
   password: string;
+  address: string;
 }
 
 export interface FileDataDTO {
@@ -34,6 +35,11 @@ export const registerUser = async (user: UserDTO) => {
 export const loginUser = async (user: UserDTO): Promise<string> => {
   const { data } = await api.post<string>('/login', user);
   return data; // JWT token
+};
+
+export const updateUser = async (user: UserDTO): Promise<string> => {
+  const { data } = await api.post<string>('/update-user', user);
+  return data;
 };
 
 export const getUserFiles = async (username: string, page = 0, size = 10) => {

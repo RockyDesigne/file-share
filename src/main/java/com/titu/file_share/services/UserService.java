@@ -33,22 +33,12 @@ public class UserService {
     }
 
     @Transactional(readOnly = true)
-    public List<UserDTO> getAllActiveUsers() {
-        return userRepository.findAll().stream()
-                .map(u -> {
-                    return UserDTO.builder()
-                            .username(u.getUsername())
-                            .build();
-                })
-                .toList();
-    }
-
-    @Transactional(readOnly = true)
     public Page<UserDTO> getAllActiveUsers(Pageable pageable) {
         return new PageImpl<UserDTO>(userRepository.findAll(pageable).stream()
                 .map(u -> {
                     return UserDTO.builder()
                             .username(u.getUsername())
+                            .address(u.getAddress())
                             .build();
                 })
                 .toList());
@@ -76,6 +66,7 @@ public class UserService {
                     .publicKey(userDTO.getPublicKey())
                     .registerDate(System.currentTimeMillis())
                     .role(userDTO.getRole())
+                    .address(userDTO.getAddress())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -86,13 +77,10 @@ public class UserService {
     @Transactional
     public void updateUser(UserDTO userDTO) {
         try {
-            userRepository.save(User.builder()
-                    .password(bCryptPasswordEncoder.encode(userDTO.getPassword()))
-                    .username(userDTO.getUsername())
-                    .publicKey(userDTO.getPublicKey())
-                    .registerDate(System.currentTimeMillis())
-                    .role(userDTO.getRole())
-                    .build());
+            User user = userRepository.getReferenceById(userDTO.getUsername());
+            user.setUsername(user.getUsername());
+            user.setAddress(userDTO.getAddress());
+            userRepository.save(user);
         } catch (Exception e) {
             log.error(e);
             throw new RuntimeException(e);
