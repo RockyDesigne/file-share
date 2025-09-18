@@ -6,16 +6,19 @@ import com.titu.file_share.repositories.FileRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.sql.rowset.serial.SerialBlob;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -62,6 +65,25 @@ public class FileService {
                 .lastModified(f1.getLastModified())
                 .signature(f1.getSignature())
                 .build()).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<FileDataDTO> getUserFiles(String username, Pageable pageable) {
+
+        Stream<FileData> fileDataStream = fileRepository.findAll(pageable)
+                .stream()
+                .filter(file -> file.getUser().getUsername().equals(username));
+
+        Stream<FileDataDTO> fileDataDTOList = fileDataStream.map((f1) -> FileDataDTO.builder()
+                .name(f1.getName())
+                .userName(f1.getUser().getUsername())
+                .size(f1.getSize())
+                .hash(f1.getHash())
+                .lastModified(f1.getLastModified())
+                .signature(f1.getSignature())
+                .build());
+
+        return new PageImpl<FileDataDTO>(fileDataDTOList.toList());
     }
 
     @Transactional(readOnly = true)

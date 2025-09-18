@@ -1,16 +1,18 @@
 package com.titu.file_share.services;
 
 import com.titu.file_share.dtos.UserDTO;
-import com.titu.file_share.handlers.WebRTCSignallingHandler;
 import com.titu.file_share.models.User;
 import com.titu.file_share.repositories.FileRepository;
 import com.titu.file_share.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.log4j.Log4j2;
+import org.springframework.data.domain.PageImpl;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import java.time.Duration;
 import java.util.List;
@@ -23,7 +25,6 @@ public class UserService {
     private final UserRepository userRepository;
     private final FileRepository fileRepository;
     private final BCryptPasswordEncoder bCryptPasswordEncoder;
-    private final WebRTCSignallingHandler webRTCSignallingHandler;
     private final JwtService jwtService;
 
     @Transactional(readOnly = true)
@@ -40,6 +41,17 @@ public class UserService {
                             .build();
                 })
                 .toList();
+    }
+
+    @Transactional(readOnly = true)
+    public Page<UserDTO> getAllActiveUsers(Pageable pageable) {
+        return new PageImpl<UserDTO>(userRepository.findAll(pageable).stream()
+                .map(u -> {
+                    return UserDTO.builder()
+                            .username(u.getUsername())
+                            .build();
+                })
+                .toList());
     }
 
     @Transactional(readOnly = true)
