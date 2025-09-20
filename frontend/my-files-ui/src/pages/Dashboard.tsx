@@ -146,6 +146,9 @@ export default function Dashboard() {
                 username: "",
                 password: "",
                 address: "",
+                cnp: "",
+                firstName: "",
+                lastName: ""
               });
             }}
             className={styles.usersButton}
@@ -195,7 +198,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      {viewAddUser && !viewUsername && (
+      {viewAddUser && !viewUsername && !viewUserInfo && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Add User</h2>
           <form
@@ -237,6 +240,40 @@ export default function Dashboard() {
                 }
               />
             </div>
+
+            <div className={styles.formField}>
+              <label>CNP</label>
+              <input
+                type="text"
+                value={viewAddUser.cnp ?? ""}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, cnp: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>First Name</label>
+              <input
+                type="text"
+                value={viewAddUser.firstName ?? ""}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, firstName: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>Last Name</label>
+              <input
+                type="text"
+                value={viewAddUser.lastName ?? ""}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, lastName: e.target.value })
+                }
+              />
+            </div>
+
             <button type="submit" className={styles.saveButton}>
               Save
             </button>
@@ -251,7 +288,7 @@ export default function Dashboard() {
         </section>
       )}
 
-      {viewUserInfo && !viewUsername && (
+      {viewUserInfo && !viewUsername && !viewAddUser && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Edit User</h2>
           <form
@@ -261,7 +298,7 @@ export default function Dashboard() {
             }}
             className={styles.form}
           >
-            <div className={styles.formField}>
+                        <div className={styles.formField}>
               <label>Username</label>
               <input
                 type="text"
@@ -279,6 +316,39 @@ export default function Dashboard() {
                 value={viewUserInfo.address ?? ""}
                 onChange={(e) =>
                   setViewUserInfo({ ...viewUserInfo, address: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>CNP</label>
+              <input
+                type="text"
+                value={viewUserInfo.cnp ?? ""}
+                onChange={(e) =>
+                  setViewUserInfo({ ...viewUserInfo, cnp: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>First Name</label>
+              <input
+                type="text"
+                value={viewUserInfo.firstName ?? ""}
+                onChange={(e) =>
+                  setViewUserInfo({ ...viewUserInfo, firstName: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>Last Name</label>
+              <input
+                type="text"
+                value={viewUserInfo.lastName ?? ""}
+                onChange={(e) =>
+                  setViewUserInfo({ ...viewUserInfo, lastName: e.target.value })
                 }
               />
             </div>

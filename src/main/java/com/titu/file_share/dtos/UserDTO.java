@@ -11,4 +11,7 @@ public class UserDTO {
     private String publicKey;
     private String role;
     private String address;
+    private String cnp;
+    private String firstName;
+    private String lastName;
 }

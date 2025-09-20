@@ -27,4 +27,11 @@ public class User {
 
     @Column()
     private String role;
+
+    @Column()
+    private String cnp;
+    @Column()
+    private String firstName;
+    @Column()
+    private String lastName;
 }

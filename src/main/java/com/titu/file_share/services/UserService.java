@@ -39,6 +39,9 @@ public class UserService {
                     return UserDTO.builder()
                             .username(u.getUsername())
                             .address(u.getAddress())
+                            .lastName(u.getLastName())
+                            .firstName(u.getFirstName())
+                            .cnp(u.getCnp())
                             .build();
                 })
                 .toList());
@@ -67,6 +70,9 @@ public class UserService {
                     .registerDate(System.currentTimeMillis())
                     .role(userDTO.getRole())
                     .address(userDTO.getAddress())
+                            .lastName(userDTO.getLastName())
+                            .firstName(userDTO.getFirstName())
+                            .cnp(userDTO.getCnp())
                     .build());
         } catch (Exception e) {
             log.error(e);
@@ -78,8 +84,11 @@ public class UserService {
     public void updateUser(UserDTO userDTO) {
         try {
             User user = userRepository.getReferenceById(userDTO.getUsername());
-            user.setUsername(user.getUsername());
+            user.setUsername(userDTO.getUsername());
             user.setAddress(userDTO.getAddress());
+            user.setFirstName(userDTO.getFirstName());
+            user.setLastName(userDTO.getLastName());
+            user.setCnp(userDTO.getCnp());
             userRepository.save(user);
         } catch (Exception e) {
             log.error(e);

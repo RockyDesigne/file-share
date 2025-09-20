@@ -10,6 +10,9 @@ export interface UserDTO {
   username: string;
   password: string;
   address: string;
+  cnp: string;
+  firstName: string;
+  lastName: string;
 }
 
 export interface FileDataDTO {
