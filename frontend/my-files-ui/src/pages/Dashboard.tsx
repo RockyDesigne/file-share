@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO, type Page, type FileDataDTO, updateUser } from '../services/api';
+import { downloadFile, getUserFiles, uploadFile, getAllUsers, type UserDTO, type Page, type FileDataDTO, updateUser, registerUser } from '../services/api';
 import { useAuth } from '../contexts/AuthContext';
 
 import styles from '../styles/Dashboard.module.css';
@@ -10,6 +10,7 @@ export default function Dashboard() {
   const [users, setUsers] = useState<Page<UserDTO>>();
   const [viewUserInfo, setViewUserInfo] = useState<UserDTO | null>(null);
   const [viewUsername, setViewUsername] = useState<string | null>(null);
+  const [viewAddUser, setAddUserView] = useState<UserDTO | null>(null);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [msg, setMsg] = useState<string | null>(null);
 
@@ -64,10 +65,21 @@ export default function Dashboard() {
     }
   }
 
+  const handleAddNewUser = async (userInfo: UserDTO) => {
+    try {
+      const res = await registerUser(userInfo);
+      const list = await getAllUsers();
+      setUsers(list);
+      setMsg(res);
+    } catch (err: any) {
+      setMsg(err?.response?.data ?? err.message);
+    }
+  }
+
   const handleUpload = async () => {
     if (!selectedFile || !username) return;
     try {
-      const res = await uploadFile(selectedFile, username);
+      const res = await uploadFile(selectedFile, viewUsername ?? username);
       setMsg(res);
       setSelectedFile(null);
       await fetchFiles();
@@ -120,15 +132,35 @@ export default function Dashboard() {
             onClick={() => {
               setViewUsername(null);
               setViewUserInfo(null);
+              setAddUserView(null);
             }}
             className={styles.usersButton}
           >
             Users
           </button>
+          <button
+            onClick={() => {
+              setViewUsername(null);
+              setViewUserInfo(null);
+              setAddUserView({
+                username: "",
+                password: "",
+                address: "",
+              });
+            }}
+            className={styles.usersButton}
+          >
+            Add user
+          </button>
+          <button
+            className={styles.usersButton}
+          >
+            Export
+          </button>
         </div>
       )}
 
-      {isAdmin && !hasSelectedUser && !viewUserInfo && (
+      {isAdmin && !hasSelectedUser && !viewUserInfo && !viewAddUser && (
         <section className={styles.section}>
           <h2 className={styles.sectionTitle}>Users</h2>
           {users?.totalElements === 0 ? (
@@ -160,6 +192,62 @@ export default function Dashboard() {
             </table>
 
           )}
+        </section>
+      )}
+
+      {viewAddUser && !viewUsername && (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>Add User</h2>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleAddNewUser(viewAddUser);
+            }}
+            className={styles.form}
+          >
+            <div className={styles.formField}>
+              <label>Username</label>
+              <input
+                type="text"
+                value={viewAddUser.username}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, username: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>Password</label>
+              <input
+                type="text"
+                value={viewAddUser.password}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, password: e.target.value })
+                }
+              />
+            </div>
+
+            <div className={styles.formField}>
+              <label>Address</label>
+              <input
+                type="address"
+                value={viewAddUser.address ?? ""}
+                onChange={(e) =>
+                  setAddUserView({ ...viewAddUser, address: e.target.value })
+                }
+              />
+            </div>
+            <button type="submit" className={styles.saveButton}>
+              Save
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewUserInfo(null)}
+              className={styles.cancelButton}
+            >
+              Cancel
+            </button>
+          </form>
         </section>
       )}
 
